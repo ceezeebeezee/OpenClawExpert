@@ -47,6 +47,26 @@
         target: "last",                 // Reply in last active DM chat
         model: "anthropic/claude-haiku-4-5"  // Cheaper model for simple checks
       }
+    },
+
+      // ─── CRON JOBS ──────────────────────────────────────────────
+      //
+      // Cron jobs are managed via CLI, not this config file:
+      //   openclaw cron add --name "morning-brief" --cron "0 7 * * *" \
+      //     --tz "America/Los_Angeles" --session isolated \
+      //     --message "Prepare and deliver the morning briefing."
+      //
+      //   openclaw cron add --name "email-triage" --cron "*/30 * * * *" \
+      //     --tz "America/Los_Angeles" --session isolated \
+      //     --message "Check for unread emails. Triage using the email-triage skill."
+      //
+      //   openclaw cron add --name "crm-sync" --cron "0 22 * * *" \
+      //     --tz "America/Los_Angeles" --session isolated \
+      //     --message "Scan today's emails and calendar. Update CRM contacts."
+      //
+      //   openclaw cron list          // View all cron jobs
+      //   openclaw cron remove <name> // Remove a cron job
+      //
     }
   },
 
@@ -120,10 +140,60 @@
         // Requires Google OAuth setup — run: openclaw skills auth gmail
       },
 
+      // ── Email Triage (Tier 2) ──
+      "email-triage": {
+        enabled: true
+        // Custom skill — place SKILL.md at ~/.openclaw/skills/email-triage/SKILL.md
+        // Works with gmail or gog skill for email access
+      },
+
+      // ── gog: Unified Google Workspace (Tier 2, alternative to separate gmail + calendar) ──
+      "gog": {
+        enabled: false                  // Enable this OR gmail+google-calendar, not both
+        // Unified Gmail + Calendar + Drive via gog CLI
+        // Install: brew install gog && gog auth login
+        // Then: clawhub install gog
+      },
+
+      // ── Outbound Guard (Tier 2) ──
+      "outbound-guard": {
+        enabled: true
+        // Scans outgoing emails for PII, credentials, and API keys
+        // Install: clawhub install outbound-guard
+      },
+
       // ── Todoist (Tier 2) ──
       "todoist": {
         enabled: true,
         apiKey: { source: "env", provider: "default", id: "TODOIST_API_KEY" }
+      },
+
+      // ── Personal CRM (Tier 2) ──
+      "personal-crm": {
+        enabled: false                  // Enable after Gmail + Calendar are stable
+        // Tracks contacts, interaction frequency, relationship health
+        // Install: clawhub install personal-crm
+      },
+
+      // ── Daily Briefing Hub (Tier 2) ──
+      "daily-briefing-hub": {
+        enabled: false                  // Alternative to building your own morning-brief plugin
+        // Aggregated morning/evening briefings from all sources
+        // Install: clawhub install daily-briefing-hub
+      },
+
+      // ── Template Engine (Tier 3) ──
+      "template-engine": {
+        enabled: false
+        // Document generation with Jinja2-style placeholders
+        // Install: clawhub install template-engine
+      },
+
+      // ── Smart Expense Tracker (Tier 3) ──
+      "smart-expense-tracker": {
+        enabled: false
+        // Receipt photos → spreadsheet entries with budget categories
+        // Install: clawhub install smart-expense-tracker
       },
 
       // ── Git Automation (Tier 4) ──

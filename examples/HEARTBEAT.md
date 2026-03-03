@@ -9,13 +9,21 @@
 If this is the first heartbeat today (no prior heartbeat log for today), prepare
 a morning briefing. Include:
 
-1. **Today's calendar**: List all events with times.
-2. **Email highlights**: Summarize any unread emails that need attention
-   (skip newsletters and automated notifications).
+1. **Today's calendar**: List all events with times and locations. Flag any
+   back-to-back meetings missing buffers. Note events requiring travel with
+   estimated drive/transit times.
+2. **Email highlights**: Summarize unread emails that need action
+   (skip newsletters and automated notifications). Group by urgency:
+   - Needs reply today
+   - FYI / can wait
+   - Meeting requests (cross-reference with calendar availability)
 3. **Pending tasks**: List any open Todoist tasks due today or overdue.
+   Note tasks that were due yesterday but not completed.
 4. **Weather**: Brief forecast for my location.
 5. **Yesterday's notes**: Summarize anything I saved to second brain or
    memory yesterday.
+6. **Contact follow-ups**: Flag any frequent contacts I haven't engaged
+   with in 30+ days (if CRM skill is available).
 
 Format the briefing as a single, scannable message. Use bullet points.
 Send to the last active DM channel.
@@ -28,15 +36,33 @@ Check in this order. Stop at the first item that needs attention:
    → If yes, summarize and alert me.
 
 2. **Calendar reminders**: Any events starting in the next 30 minutes?
-   → If yes, send a heads-up with event name and time.
+   → If yes, send a heads-up with event name, time, and any prep context.
+   → If the event requires travel, remind me of departure time.
 
-3. **Deployment alerts**: Check if any active deployments have failed or are unhealthy.
+3. **Meeting requests in email**: Any new emails that look like meeting requests
+   or scheduling proposals?
+   → If yes, summarize the request, check my calendar availability, and ask if
+   I want to reply with available times.
+
+4. **Email requiring action**: Any unread emails from known contacts that
+   require a reply or decision?
+   → If yes, summarize briefly. Don't include the full email body.
+
+5. **Deployment alerts**: Check if any active deployments have failed or are unhealthy.
    → If yes, summarize the issue.
 
-4. **Task deadlines**: Any Todoist tasks due in the next 2 hours?
+6. **Task deadlines**: Any Todoist tasks due in the next 2 hours?
    → If yes, remind me.
 
-5. **Nothing needs attention**: Reply HEARTBEAT_OK.
+7. **Task reconciliation**: Any Todoist tasks that were marked complete outside
+   this agent (e.g., completed in the Todoist app)?
+   → If yes, note them silently in the daily memory log. Don't alert me.
+
+8. **Calendar changes**: Any events that were modified, cancelled, or added
+   by other attendees since the last heartbeat?
+   → If yes, summarize the change.
+
+9. **Nothing needs attention**: Reply HEARTBEAT_OK.
 
 ## Rules
 
@@ -45,3 +71,8 @@ Check in this order. Stop at the first item that needs attention:
 - Don't repeat alerts I've already acknowledged.
 - Respect active hours — no heartbeat messages outside configured hours.
 - Keep heartbeat messages SHORT. If I need details, I'll ask.
+- Use the cheapest available model for heartbeat checks (Haiku recommended).
+- Email scanning should only look at the last 30 minutes of new mail to avoid
+  re-processing old messages.
+- Never include full email bodies in heartbeat alerts — subject line and
+  one-sentence summary only.

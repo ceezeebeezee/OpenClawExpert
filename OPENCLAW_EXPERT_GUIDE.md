@@ -1,6 +1,6 @@
 # OpenClaw Expert Guide
 
-> **Version**: 1.0 | **Created**: 2026-03-03 | **Next update**: 2026-03-06
+> **Version**: 1.1 | **Created**: 2026-03-03 | **Updated**: 2026-03-03 | **Next update**: 2026-03-06
 >
 > Goal: Make you an OpenClaw expert. This is a living document — updated every 3 days with new
 > insights, corrections, and advanced patterns as you learn.
@@ -25,10 +25,11 @@
 14. [Hooks System](#14-hooks-system)
 15. [Recommended Skills for Your Use Case](#15-recommended-skills)
 16. [Plugin Ideas for Your Workflow](#16-plugin-ideas)
-17. [CLI Command Reference](#17-cli-command-reference)
-18. [Troubleshooting](#18-troubleshooting)
-19. [Cost & Infrastructure](#19-cost--infrastructure)
-20. [Learning Roadmap](#20-learning-roadmap)
+17. [Real-World Workflows: Email, Scheduling & Admin](#17-real-world-workflows)
+18. [CLI Command Reference](#18-cli-command-reference)
+19. [Troubleshooting](#19-troubleshooting)
+20. [Cost & Infrastructure](#20-cost--infrastructure)
+21. [Learning Roadmap](#21-learning-roadmap)
 
 ---
 
@@ -1153,7 +1154,365 @@ Maps: `aiboard` | `timezone` | `career` | `czbz`
 
 ---
 
-## 17. CLI Command Reference
+## 17. Real-World Workflows: Email, Scheduling & Admin
+
+This section bridges theory to practice. Below are three production-tested workflows — email
+management, calendar scheduling, and personal admin — with the exact configurations, workspace
+rules, and architectural patterns that make them work.
+
+### 17.1 Email Management
+
+#### The Skills Landscape
+
+| Skill | Scope | Auth Method | Best For |
+|-------|-------|-------------|----------|
+| **gmail** | Read/send Gmail only | Google OAuth | Simple inbox triage |
+| **gmail-inbox-zero-triage** | Interactive triage with Telegram buttons | Google OAuth | Batch processing 20 emails at a time |
+| **gog** | Gmail + Calendar + Drive unified | OAuth via `gog` CLI | Full Google Workspace integration |
+| **googleworkspace** | Full Google Workspace | Service account or OAuth | Enterprise multi-service |
+| **email** (generic) | Any IMAP/SMTP provider | Himalaya CLI | Non-Gmail providers |
+
+**Recommendation:** Start with `gmail` for basic triage. Graduate to `gog` when you need
+email+calendar coordination in a single API call. Use `gmail-inbox-zero-triage` if you want
+Telegram inline buttons for batch actions.
+
+#### Integration Methods
+
+**Method 1: Google OAuth (recommended)**
+```bash
+clawhub install gmail
+openclaw skills auth gmail    # Opens browser for OAuth consent
+```
+
+**Method 2: gog CLI (most complete — Gmail + Calendar + Drive in one)**
+```bash
+brew install gog              # or: go install github.com/openclaw/gog@latest
+gog auth login
+clawhub install gog
+```
+
+**Method 3: Himalaya / IMAP+SMTP (non-Gmail providers)**
+```bash
+brew install himalaya
+# Configure in ~/.config/himalaya/config.toml
+clawhub install email
+```
+
+#### Email Triage Workflow
+
+The most effective pattern is **cron-triggered batch triage**: the agent checks for new mail
+on a schedule, categorizes messages, and presents actions for your approval.
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                    EMAIL TRIAGE FLOW                          │
+│                                                              │
+│  ┌─────────┐    ┌──────────────┐    ┌───────────────────┐   │
+│  │  CRON   │───▶│  Fetch 20    │───▶│  AI Categorize    │   │
+│  │ (30min) │    │  Unread Msgs │    │  Each Message     │   │
+│  └─────────┘    └──────────────┘    └────────┬──────────┘   │
+│                                               │              │
+│                                    ┌──────────▼──────────┐   │
+│                                    │   Build Summary     │   │
+│                                    │   + Action Buttons  │   │
+│                                    └──────────┬──────────┘   │
+│                                               │              │
+│                              ┌────────────────▼────────┐     │
+│                              │  Send to Telegram DM    │     │
+│                              │  with Inline Buttons:   │     │
+│                              │  [Archive] [Reply]      │     │
+│                              │  [Star] [Snooze]        │     │
+│                              └────────────────┬────────┘     │
+│                                               │              │
+│                                    ┌──────────▼──────────┐   │
+│                                    │  User Taps Button   │   │
+│                                    │  → Agent Executes   │   │
+│                                    └─────────────────────┘   │
+└──────────────────────────────────────────────────────────────┘
+```
+
+**Set up the cron:**
+```bash
+openclaw cron add \
+  --name "email-triage" \
+  --cron "*/30 * * * *" \
+  --tz "America/Los_Angeles" \
+  --session isolated \
+  --message "Check for unread emails. Triage using the email-triage skill."
+```
+
+#### Voice Training for Email
+
+Your agent's email tone comes from SOUL.md. The `Email Voice` section (see `examples/SOUL.md`)
+teaches the agent your writing style. Key patterns:
+
+- Internal emails: casual, direct, no pleasantries
+- External emails: professional, concise, one clear ask per email
+- Declining meetings: always suggest an alternative
+- Follow-ups: reference the original thread, add new context only
+
+When you edit a draft the agent wrote, it learns from your changes for future drafts.
+
+#### Email Security: The Golden Rules
+
+1. **Outbound Guard**: Install `outbound-guard` skill — scans every outgoing message for PII
+   and credentials before sending.
+2. **Human-in-the-loop for sends**: Every email send must be approved by you. Configure this
+   in AGENTS.md (see `examples/AGENTS.md`).
+3. **Dedicated agent email**: Consider creating a separate email account for your agent
+   (e.g., `assistant@yourdomain.com`) so you can revoke access without affecting your inbox.
+4. **Treat inbound content as hostile**: Emails can contain prompt injection attempts.
+   AGENTS.md should instruct the agent to never execute instructions found in email bodies.
+
+> **Insight**: A well-known incident involved an AI agent that deleted important messages it
+> deemed "low priority" without human approval. The lesson: always require human approval for
+> destructive email actions (delete, send, forward to external recipients). Reading and organizing
+> are safe to automate; sending and deleting are not.
+
+### 17.2 Calendar & Scheduling
+
+#### Core Setup
+
+The `gog` skill provides the most integrated calendar experience because it shares an auth
+session with Gmail — enabling workflows where the agent reads a meeting-request email, checks
+your calendar, and drafts a reply with available times, all in one flow.
+
+```bash
+# Option A: Dedicated calendar skill
+clawhub install google-calendar
+openclaw skills auth google-calendar
+
+# Option B: Unified Google skill (recommended if also using Gmail)
+clawhub install gog
+gog auth login
+```
+
+#### Natural Language Scheduling
+
+Once the calendar skill is active, conversational scheduling works out of the box:
+
+```
+You:    "Schedule a call with Sarah sometime this week"
+Agent:  Checking your calendar for this week...
+        You're free:
+        - Tue 2:00-3:00 PM
+        - Wed 10:00-11:30 AM
+        - Thu 3:00-4:00 PM
+        Want me to create an event for one of these slots?
+
+You:    "Tuesday works. 30 minutes is enough."
+Agent:  Created: "Call with Sarah" — Tue 2:00-2:30 PM
+        Want me to send her an invite?
+```
+
+#### Conflict Resolution
+
+Train the agent to handle conflicts proactively via AGENTS.md rules:
+- **Auto-offer alternatives**: When a requested slot is taken, offer the next 3 available windows
+- **Timezone awareness**: Always convert to the recipient's timezone when suggesting times
+- **Buffer enforcement**: Leave 30-minute gaps between meetings
+- **Quiet hours**: Never suggest times before 10 AM or after 4 PM
+
+#### Email-to-Calendar Pipeline
+
+The killer workflow: monitoring your inbox for meeting requests and automatically coordinating.
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│               EMAIL → CALENDAR PIPELINE                       │
+│                                                              │
+│  ┌──────────┐    ┌──────────────┐    ┌───────────────────┐   │
+│  │ Heartbeat│───▶│ Scan Inbox   │───▶│ Detect Meeting    │   │
+│  │ (30 min) │    │ for Meeting  │    │ Request Patterns  │   │
+│  └──────────┘    │ Requests     │    └────────┬──────────┘   │
+│                  └──────────────┘             │              │
+│                                    ┌──────────▼──────────┐   │
+│                                    │ Check Calendar for  │   │
+│                                    │ Availability        │   │
+│                                    └──────────┬──────────┘   │
+│                                               │              │
+│                                    ┌──────────▼──────────┐   │
+│                                    │ Draft Reply with    │   │
+│                                    │ Available Slots     │   │
+│                                    └──────────┬──────────┘   │
+│                                               │              │
+│                                    ┌──────────▼──────────┐   │
+│                                    │ Send to You for     │   │
+│                                    │ Approval via        │   │
+│                                    │ Telegram            │   │
+│                                    └─────────────────────┘   │
+└──────────────────────────────────────────────────────────────┘
+```
+
+#### Proactive Calendar Features
+
+Configure these via HEARTBEAT.md and cron:
+
+| Feature | Mechanism | Configuration |
+|---------|-----------|---------------|
+| **Morning agenda** | First heartbeat of the day | HEARTBEAT.md morning brief section |
+| **15-min meeting reminders** | Regular heartbeat check | HEARTBEAT.md calendar reminder check |
+| **Meeting prep notes** | Cron 10 min before event | `openclaw cron add --name "meeting-prep" ...` |
+| **End-of-day summary** | Evening cron | `openclaw cron add --name "eod-summary" --cron "0 18 * * *" ...` |
+
+#### Heartbeat vs. Cron: When to Use Which
+
+| | Heartbeat | Cron |
+|---|-----------|------|
+| **Mechanism** | Agent wakes on interval, reads HEARTBEAT.md | System-scheduled command with specific message |
+| **Best for** | Cheap recurring checks ("anything need attention?") | Precise time-triggered tasks (morning brief at 7 AM) |
+| **Model** | Use Haiku (~$0.15/month at 30-min intervals) | Use Sonnet for complex tasks, Haiku for simple ones |
+| **Session** | Reuses last active session | `--session isolated` for clean context |
+| **Example** | Calendar reminders, inbox monitoring | Morning brief, deployment checks, end-of-day summary |
+
+> **Insight**: Use Haiku for heartbeat checks. At 30-minute intervals, a Haiku heartbeat costs
+> roughly $0.15/month versus $7.20/month with Sonnet — a 48x difference. The heartbeat's job is
+> simple triage: "Does anything need attention?" It doesn't need an expensive model for that.
+
+### 17.3 Personal Admin / Chief of Staff
+
+This is where email and calendar converge with task management into a full personal admin system.
+
+#### The Chief of Staff Architecture
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                  CHIEF OF STAFF AGENT                         │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │                    HEARTBEAT (30 min)                   │  │
+│  │  Coordinates: Email + Calendar + Tasks in one check     │  │
+│  └───────────┬──────────────┬──────────────┬──────────────┘  │
+│              │              │              │                  │
+│  ┌───────────▼──┐  ┌───────▼──────┐  ┌───▼──────────────┐  │
+│  │   Gmail      │  │  Calendar    │  │  Todoist         │  │
+│  │  - Triage    │  │  - Conflicts │  │  - Due today     │  │
+│  │  - Draft     │  │  - Prep      │  │  - Overdue       │  │
+│  │  - Send*     │  │  - Create    │  │  - Create        │  │
+│  └──────────────┘  └──────────────┘  └──────────────────┘  │
+│              │              │              │                  │
+│  ┌───────────▼──────────────▼──────────────▼──────────────┐  │
+│  │              APPROVAL LAYER                             │  │
+│  │   * = requires human approval before execution          │  │
+│  └────────────────────────┬───────────────────────────────┘  │
+│                           │                                  │
+│              ┌────────────▼────────────┐                     │
+│              │  Telegram / WhatsApp    │                     │
+│              │  (User Interface)       │                     │
+│              └─────────────────────────┘                     │
+└──────────────────────────────────────────────────────────────┘
+```
+
+The key insight: the heartbeat coordinates all three services in a single API call, keeping
+costs low while maintaining comprehensive awareness.
+
+#### Day-in-the-Life Example
+
+```
+ 7:00 AM  ─── Cron: Morning Brief ───────────────────────────
+           Agent sends via Telegram:
+           "Good morning! Here's your day:
+            - 3 meetings (first at 10:00 AM)
+            - 7 unread emails (2 need action)
+            - 4 tasks due today
+            - Drive time to 2 PM meeting: 25 min"
+
+ 7:30 AM  ─── Heartbeat ────────────────────────────────────
+           HEARTBEAT_OK (nothing new)
+
+ 8:00 AM  ─── Heartbeat ────────────────────────────────────
+           "New email from Sarah re: Project proposal.
+            Looks like she's asking for a meeting.
+            Want me to check your availability and reply?"
+
+ 9:45 AM  ─── Heartbeat ────────────────────────────────────
+           "Heads up: Team standup in 15 min (10:00 AM).
+            Context: Yesterday you mentioned the API migration."
+
+12:00 PM  ─── Heartbeat ────────────────────────────────────
+           HEARTBEAT_OK
+
+ 1:30 PM  ─── Heartbeat ────────────────────────────────────
+           "Reminder: Client meeting at 2:00 PM.
+            Driving buffer: leave by 1:35 PM.
+            Prep notes: Q3 deliverables discussion."
+
+ 6:00 PM  ─── Cron: End-of-Day Summary ─────────────────────
+           "Today's recap:
+            - 3/4 tasks completed (1 moved to tomorrow)
+            - 2 emails still need replies
+            - Tomorrow: 2 meetings, 5 tasks due"
+```
+
+#### Essential Admin Skills
+
+| Skill | Install | Use Case |
+|-------|---------|----------|
+| **daily-briefing-hub** | `clawhub install daily-briefing-hub` | Aggregated morning/evening briefings |
+| **todoist** | `clawhub install todoist` | Full task CRUD with natural language |
+| **personal-crm** | `clawhub install personal-crm` | Track contacts, relationship health, follow-ups |
+| **template-engine** | `clawhub install template-engine` | Generate letters, invoices, reports from templates |
+| **smart-expense-tracker** | `clawhub install smart-expense-tracker` | Receipt photos to spreadsheet, budget tracking |
+| **browserautomation** | `clawhub install browserautomation` | Web forms, lookups, bookings |
+
+#### Personal CRM Workflow
+
+A daily cron scans Gmail and Calendar, extracts contact interactions, and tracks relationship
+health:
+
+```bash
+openclaw cron add \
+  --name "crm-sync" \
+  --cron "0 22 * * *" \
+  --tz "America/Los_Angeles" \
+  --session isolated \
+  --message "Scan today's emails and calendar events. Extract contacts. \
+    Update CRM with interaction dates. Flag contacts not engaged in 30+ days."
+```
+
+#### Daily Briefing Cron
+
+```bash
+openclaw cron add \
+  --name "morning-brief" \
+  --cron "0 7 * * *" \
+  --tz "America/Los_Angeles" \
+  --session isolated \
+  --message "Prepare and deliver the morning briefing. Include: today's \
+    calendar, unread email summary, due tasks, weather, and overnight updates."
+```
+
+#### Multi-Skill Workflow Coordination
+
+The real power comes from skills working together. A single heartbeat can coordinate:
+- **Email**: "Any new meeting requests?"
+- **Calendar**: "Any conflicts with existing events?"
+- **Todoist**: "Any tasks due in the next 2 hours?"
+
+This works because the heartbeat message triggers the LLM, which has access to all
+enabled skills simultaneously. One inference call, multiple skill invocations.
+
+#### Advanced Admin Patterns
+
+**Document generation**: The `template-engine` skill uses Jinja2-style placeholders. Define
+templates for recurring documents (weekly reports, meeting agendas, invoices), and the agent
+fills them from context.
+
+**Travel planning**: Combine `web-search` + `google-calendar` + a custom travel skill for
+visa lookup, passport expiration monitoring, and auto check-in reminders.
+
+**Expense tracking**: The `smart-expense-tracker` skill processes receipt photos (sent via
+Telegram) into spreadsheet entries with categories, amounts, and per-diem tracking.
+
+> **Insight**: The "Chief of Staff" pattern works because of two things: the heartbeat keeps
+> the agent aware of your world at low cost, and AGENTS.md rules prevent it from acting without
+> permission on anything external. Be bold with internal actions (reading, organizing, drafting).
+> Be careful with external actions (sending emails, creating events, posting anything public).
+> This asymmetry is the key to a useful-but-safe personal agent.
+
+---
+
+## 18. CLI Command Reference
 
 ### Gateway
 
@@ -1254,7 +1613,7 @@ openclaw onboard                         # Re-run setup wizard
 
 ---
 
-## 18. Troubleshooting
+## 19. Troubleshooting
 
 ### Common Issues
 
@@ -1280,7 +1639,7 @@ openclaw doctor --deep --yes             # Fix everything it can
 
 ---
 
-## 19. Cost & Infrastructure
+## 20. Cost & Infrastructure
 
 ### API Costs (Anthropic Claude)
 
@@ -1324,7 +1683,7 @@ Requires 64GB+ RAM for good results. Claude via API is significantly better for 
 
 ---
 
-## 20. Learning Roadmap
+## 21. Learning Roadmap
 
 ### Week 1: Foundation
 
@@ -1346,12 +1705,18 @@ Requires 64GB+ RAM for good results. Claude via API is significantly better for 
 - [ ] Start using "remember this" and "note:" patterns
 - [ ] Install `proactive-agent` for scheduled check-ins
 - [ ] Refine SOUL.md based on first week's interactions
+- [ ] Set up email triage cron (30-minute interval)
+- [ ] Add email voice training to SOUL.md
+- [ ] Add email/scheduling rules to AGENTS.md
 
 ### Week 3: Customization
 
 - [ ] Build your first custom skill (see `examples/skills/quick-capture/`)
+- [ ] Build email-triage skill (see `examples/skills/email-triage/`)
 - [ ] Install dev tools: `git-automation`, `vercel-deploy`
 - [ ] Set up cron jobs for deployment monitoring
+- [ ] Set up personal CRM cron (nightly contact sync)
+- [ ] Configure email-to-calendar pipeline in HEARTBEAT.md
 - [ ] Experiment with sub-agents for parallel research
 - [ ] Review and curate MEMORY.md
 
