@@ -1,0 +1,249 @@
+// OpenClaw Configuration — Example for Personal Assistant + Second Brain
+// Place this file at: ~/.openclaw/openclaw.json
+//
+// This is JSON5 format — comments are allowed.
+// Replace all ${...} values with your actual keys (or set them in ~/.openclaw/.env)
+//
+// Tip: Start with the essentials marked [REQUIRED]. Add optional sections as needed.
+
+{
+  // ─── MODEL SELECTION [REQUIRED] ─────────────────────────────────
+  //
+  // Sonnet is the sweet spot for daily use: smart enough for complex tasks,
+  // affordable for continuous use ($3-5/day). Haiku as fallback is even cheaper.
+  // Use /model anthropic/claude-opus-4-6 in-chat for deep work sessions.
+  //
+  agents: {
+    defaults: {
+      model: {
+        primary: "anthropic/claude-sonnet-4-6",
+        fallbacks: ["anthropic/claude-haiku-4-5"]
+      },
+      models: {
+        "anthropic/claude-sonnet-4-6": {
+          alias: "sonnet",
+          temperature: 0.7,
+          maxTokens: 4096,
+          cacheControlTtl: 300          // 5-minute prompt caching (saves $ on repeated context)
+        },
+        "anthropic/claude-haiku-4-5": {
+          alias: "haiku",
+          temperature: 0.5,
+          maxTokens: 2048
+        }
+      },
+
+      // ─── HEARTBEAT ──────────────────────────────────────────────
+      //
+      // The heartbeat is what makes OpenClaw proactive instead of just reactive.
+      // Every 30 minutes, the agent wakes up, reads HEARTBEAT.md, and decides
+      // if anything needs your attention.
+      //
+      // Use Haiku for heartbeat — it's just a checklist, doesn't need Sonnet.
+      //
+      heartbeat: {
+        every: "30m",                   // Check every 30 minutes
+        activeHours: "07:00-23:00",     // Don't wake you at 3am
+        target: "last",                 // Reply in last active DM chat
+        model: "anthropic/claude-haiku-4-5"  // Cheaper model for simple checks
+      }
+    }
+  },
+
+  // ─── CHANNELS [REQUIRED — at least one] ─────────────────────────
+  //
+  // Start with Telegram (easier to set up). Add WhatsApp once Telegram is stable.
+  //
+  channels: {
+    telegram: {
+      botToken: "${TELEGRAM_BOT_TOKEN}",  // Get from @BotFather
+      dmPolicy: "pairing",               // Require pairing handshake for new contacts
+      groupPolicy: "mention",            // Only respond in groups when @mentioned
+      streamMode: "partial",             // Show typing indicators while thinking
+      allowFrom: []                      // Add your Telegram user ID here
+      // To find your Telegram user ID:
+      // 1. Message @userinfobot in Telegram
+      // 2. It replies with your numeric ID
+      // 3. Add it here: allowFrom: [123456789]
+    },
+
+    whatsapp: {
+      allowFrom: [],                     // Add your phone number: ["+1234567890"]
+      // Setup process:
+      // 1. Run: openclaw channels login --channel whatsapp
+      // 2. Scan QR code with WhatsApp on your phone
+      // 3. Add your number to allowFrom above
+    }
+  },
+
+  // ─── SKILLS ──────────────────────────────────────────────────────
+  //
+  // Skills are the main way to add capabilities. Each entry here configures
+  // a specific installed skill. Enable/disable individual skills, provide
+  // API keys, and set custom options.
+  //
+  // Install skills first: clawhub install <slug>
+  // Then configure them here.
+  //
+  skills: {
+    load: {
+      watch: true                       // Hot-reload skill changes (no restart needed)
+      // extraDirs: ["~/my-custom-skills"]  // Uncomment to add extra skill directories
+    },
+    entries: {
+      // ── Second Brain (Tier 1) ──
+      "second-brain": {
+        enabled: true,
+        apiKey: { source: "env", provider: "default", id: "ENSUE_API_KEY" }
+      },
+
+      // ── Web Search (Tier 1) ──
+      "web-search": {
+        enabled: true
+        // Uses tools.web.search config below
+      },
+
+      // ── Proactive Agent (Tier 1) ──
+      "proactive-agent": {
+        enabled: true
+      },
+
+      // ── Google Calendar (Tier 2) ──
+      "google-calendar": {
+        enabled: true
+        // Requires Google OAuth setup — run: openclaw skills auth google-calendar
+      },
+
+      // ── Gmail (Tier 2) ──
+      "gmail": {
+        enabled: true
+        // Requires Google OAuth setup — run: openclaw skills auth gmail
+      },
+
+      // ── Todoist (Tier 2) ──
+      "todoist": {
+        enabled: true,
+        apiKey: { source: "env", provider: "default", id: "TODOIST_API_KEY" }
+      },
+
+      // ── Git Automation (Tier 4) ──
+      "git-automation": {
+        enabled: true
+      },
+
+      // ── Vercel Deploy (Tier 4) ──
+      "vercel-deploy": {
+        enabled: true,
+        apiKey: { source: "env", provider: "default", id: "VERCEL_TOKEN" }
+      }
+    }
+  },
+
+  // ─── TOOLS ───────────────────────────────────────────────────────
+  //
+  // Global tool configuration. These are separate from skills — tools are
+  // the underlying capabilities (shell, browser, web search) that skills
+  // and the agent can invoke.
+  //
+  tools: {
+    web: {
+      search: {
+        provider: "brave",              // or "google"
+        apiKey: "${BRAVE_API_KEY}"      // Get from: https://brave.com/search/api/
+      }
+    }
+    // media: {
+    //   audio: {
+    //     // Whisper transcription — uncomment if you want voice message support
+    //     // Requires OpenAI API key
+    //   }
+    // }
+  },
+
+  // ─── PLUGINS ─────────────────────────────────────────────────────
+  //
+  // Plugins are TypeScript modules that add code-level capabilities beyond
+  // what skills can do. They run in-process with the Gateway.
+  //
+  plugins: {
+    enabled: true,
+    // allow: ["morning-brief"],        // Uncomment to restrict to specific plugins
+    // deny: [],                        // Blacklist specific plugins
+    load: {
+      // paths: ["~/Projects/OpenClaw Learning/examples/plugins/morning-brief"]
+    },
+    entries: {
+      // "morning-brief": {
+      //   enabled: true,
+      //   config: { briefingTime: "07:00" }
+      // }
+    }
+  },
+
+  // ─── SESSIONS ────────────────────────────────────────────────────
+  //
+  // How conversations are scoped and managed.
+  //
+  // "per-peer" = one session per person you talk to (recommended)
+  // "daily" reset = auto-clear at 4am (keeps things fresh, but memory persists via logs)
+  //
+  session: {
+    dmScope: "per-peer",
+    reset: {
+      mode: "daily"                     // Auto-reset at 4am local time
+      // Alternative: mode: "idle", idleMinutes: 120  (reset after 2hr idle)
+    }
+  },
+
+  // ─── CONTEXT MANAGEMENT ──────────────────────────────────────────
+  //
+  // Controls how the agent handles growing conversation context.
+  // "cache-ttl" = use prompt caching with TTL-based eviction
+  // "safeguard" compaction = conservative summarization when context gets large
+  //
+  contextPruning: {
+    mode: "cache-ttl"
+  },
+  compaction: {
+    mode: "safeguard"                   // or "aggressive" (summarizes more aggressively)
+  },
+
+  // ─── GATEWAY [REQUIRED] ─────────────────────────────────────────
+  //
+  // The Gateway is the central server everything connects to.
+  //
+  // CRITICAL SECURITY:
+  // - bind: "loopback" = only accessible from localhost (ALWAYS use this)
+  // - auth.token = required for all API access (ALWAYS set this)
+  //
+  gateway: {
+    port: 18789,
+    mode: "local",
+    bind: "loopback",                   // NEVER change to "0.0.0.0" unless behind VPN
+    auth: {
+      token: "${OPENCLAW_TOKEN}"        // Set in ~/.openclaw/.env
+    }
+  },
+
+  // ─── TEXT-TO-SPEECH (optional) ───────────────────────────────────
+  //
+  // Enable if you want the agent to send voice messages.
+  // Options: elevenlabs (best quality), openai (fast), edge-tts (free)
+  //
+  messages: {
+    tts: {
+      auto: "never"                     // "always", "dm-only", or "never"
+    }
+  },
+
+  // ─── SANDBOXING (optional, advanced) ─────────────────────────────
+  //
+  // Isolate untrusted sessions in containers. Good for security but adds
+  // complexity. Skip this for week 1.
+  //
+  // sandbox: {
+  //   mode: "non-main",               // Sandbox non-main sessions
+  //   scope: "session",               // One container per session
+  //   workspaceAccess: "ro"           // Read-only workspace access in sandbox
+  // }
+}

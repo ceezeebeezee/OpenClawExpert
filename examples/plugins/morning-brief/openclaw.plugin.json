@@ -1,0 +1,35 @@
+{
+  "id": "morning-brief",
+  "name": "Morning Briefing Engine",
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "briefingTime": {
+        "type": "string",
+        "default": "07:00",
+        "description": "Time to deliver the morning briefing (HH:MM in local timezone)"
+      },
+      "includeWeather": {
+        "type": "boolean",
+        "default": true,
+        "description": "Include weather forecast in the briefing"
+      },
+      "weatherLocation": {
+        "type": "string",
+        "default": "",
+        "description": "City name for weather forecast (e.g., 'New York')"
+      },
+      "includeNews": {
+        "type": "boolean",
+        "default": false,
+        "description": "Include tech news digest"
+      }
+    }
+  },
+  "uiHints": {
+    "briefingTime": { "label": "Briefing Time", "placeholder": "07:00" },
+    "includeWeather": { "label": "Include Weather" },
+    "weatherLocation": { "label": "Weather Location", "placeholder": "New York" },
+    "includeNews": { "label": "Include Tech News" }
+  }
+}
