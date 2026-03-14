@@ -52,6 +52,17 @@ to messaging platforms (Telegram, WhatsApp, Discord, Slack, iMessage, Signal) an
 > **Insight**: Think of OpenClaw as middleware between your messaging apps and AI models. The Gateway
 > is the central hub. Everything else — channels, skills, plugins, memory — plugs into it.
 
+### Latest Releases (as of March 2026)
+
+| Release | Date | Highlights |
+|---------|------|------------|
+| **v2026.3.12** | Mar 12 | Shared `/fast` mode, first-class Ollama onboarding, resumable ACP sessions, Dashboard v2 (modular views, command palette, mobile tabs), browser origin validation security fix |
+| **v2026.3.7** | Mar 7 | **ContextEngine Plugin System** (pluggable context management), durable ACP bindings (survive restarts), model resilience (auto-fallback chains), scoped subagent runtime, 200+ bug fixes |
+| **v2026.2.21** | Feb 21 | Gemini 3.1 Pro Preview support |
+| **v2026.2.17** | Feb 17 | Deterministic sub-agent spawning, structured inter-agent communication |
+| **v2026.2.14-15** | Feb | 50+ security hardening measures, exec approval fixes |
+| **v2026.2.12** | Feb 12 | 40 security fixes, per-channel model control |
+
 ---
 
 ## 2. System Architecture
@@ -1213,6 +1224,40 @@ openclaw plugins update <id>                   # Update
 > everything the Gateway can do. Treat third-party plugins as trusted code — review the source
 > before installing. Use `plugins.allow` allowlists to restrict which plugins can load.
 
+### ContextEngine Plugin System (v2026.3.7+)
+
+The ContextEngine is a major plugin capability introduced in March 2026. It provides a
+**pluggable slot** for managing how conversation context is assembled, compressed, and
+shared with sub-agents.
+
+**7 lifecycle hooks:**
+
+| Hook | Phase | Purpose |
+|------|-------|---------|
+| `bootstrap` | Init | Initialize context engine state |
+| `ingest` | Input | Inject new information into context |
+| `assemble` | Build | Construct the final prompt context |
+| `compact` | Compress | Summarize/trim context when window fills |
+| `afterTurn` | Post-turn | Post-processing after each conversation turn |
+| `prepareSubagentSpawn` | Sub-agent | Prepare context before spawning sub-agent |
+| `onSubagentEnded` | Sub-agent | Handle context when sub-agent completes |
+
+**Registration:**
+```typescript
+api.registerContextEngine("my-context-engine", (config) => ({
+  bootstrap: async (ctx) => { /* initialize */ },
+  assemble: async (ctx) => { /* build system prompt */ },
+  compact: async (ctx) => { /* summarize old context */ },
+  // ... other hooks
+}));
+```
+
+The default `LegacyContextEngine` wrapper preserves existing compaction behavior when no
+custom context engine is configured — zero behavior change on upgrade.
+
+**Notable community plugin**: `lossless-claw` provides alternative context management
+without modifying core compaction logic.
+
 ### See `examples/plugins/morning-brief/` for a complete plugin scaffold.
 
 ---
@@ -1693,18 +1738,50 @@ channel bindings.
     └── sessions/
 ```
 
+### Agent Isolation
+
+Each agent operates as a **fully scoped brain**:
+- **Own workspace**: SOUL.md, AGENTS.md, USER.md, persona rules
+- **Own state**: `~/.openclaw/agents/<agentId>/agent/auth-profiles.json`
+- **Own sessions**: `~/.openclaw/agents/<agentId>/sessions/*.jsonl`
+- Credentials are **not shared** between agents
+
 ### Routing Precedence
 
-When a message arrives, OpenClaw determines which agent handles it:
+When a message arrives, OpenClaw determines which agent handles it (most specific wins):
 
 ```
-1. peer (DM/group ID)        ← Highest priority
-2. guildId (Discord)
-3. teamId (Slack)
-4. accountId
-5. channel type
-6. default agent             ← Fallback
+1. Direct peer match         ← Highest priority
+2. Parent peer inheritance
+3. guildId + role (Discord)
+4. guildId / teamId
+5. accountId
+6. channel-wide fallback
+7. default agent             ← Lowest priority
 ```
+
+### Inter-Agent Communication (ACP)
+
+Agent-to-agent messaging is **disabled by default**. Enable explicitly:
+
+```json5
+tools: {
+  agentToAgent: {
+    enabled: true,
+    allow: ["home", "work"]   // Restrict which agents can communicate
+  }
+}
+```
+
+Communication mechanisms:
+- **Webhooks**: One agent invokes a webhook routed to another's session
+- **Shared channels**: A designated channel both agents subscribe to
+- **ACP (Agent Communication Protocol)**: Structured inter-agent task triggering,
+  context sharing, and result delivery
+
+**ACP Durable Bindings** (v2026.3.7): Communication links now **survive Gateway restarts**.
+Agents reconnect automatically and resume tasks. Thread bindings route messages in a
+bound thread to the bound ACP session.
 
 ### Management
 
@@ -1737,10 +1814,12 @@ Main Agent receives: "Research these 3 topics and summarize"
                                 All complete → Results announced to you
 ```
 
-- Each sub-agent gets its own session key + optional sandbox
+- Each sub-agent gets its own session key (`subagent:{depth}:{baseKey}`) + optional sandbox
 - They run in parallel without blocking the main conversation
 - Results are auto-announced when complete
 - Auto-archived after 60 minutes of idle
+- **Depth tracking** prevents infinite delegation loops (v2026.2.17+)
+- **Scoped runtime** via `AsyncLocalStorage` for isolated plugin contexts (v2026.3.7+)
 
 ### Slash Commands
 
