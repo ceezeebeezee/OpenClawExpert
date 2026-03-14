@@ -76,3 +76,25 @@ Check in this order. Stop at the first item that needs attention:
   re-processing old messages.
 - Never include full email bodies in heartbeat alerts — subject line and
   one-sentence summary only.
+- If nothing needs attention, reply HEARTBEAT_OK (will be suppressed if ≤300 chars).
+- When `lightContext: true` is set, only essential workspace files are loaded to
+  minimize token usage during heartbeat checks.
+
+## Manual Triggers
+
+To manually trigger a heartbeat-like check at any time:
+```
+openclaw system event --text "Check my inbox for anything urgent" --mode now
+```
+
+## Configuration Reference
+
+```json5
+heartbeat: {
+  every: "30m",               // Check interval
+  activeHours: "07:00-23:00", // Quiet hours
+  target: "last",             // "last" (active DM) or "none" (internal only)
+  model: "anthropic/claude-haiku-4-5",
+  lightContext: true          // Minimal context for cheaper heartbeat turns
+}
+```

@@ -306,6 +306,38 @@
     }
   },
 
+  // ─── TOOL POLICIES (recommended) ─────────────────────────────────
+  //
+  // Control what the agent can do. Start restrictive, expand as needed.
+  //
+  // Three profiles: "minimal" (messaging only), "messaging" (chat + providers),
+  // "full" (everything). Layer allow/deny lists on top.
+  //
+  tools: {
+    // profile: "messaging",            // Uncomment for strict baseline
+    exec: {
+      security: "ask"                   // "deny" | "ask" | "allow"
+      // When "ask": agent requests permission before running shell commands
+      // When "deny": no shell access at all (safest)
+    },
+    // deny: ["gateway", "cron"],       // Block dangerous control-plane tools
+    // deny: ["group:automation"],      // Or block entire groups
+    fs: {
+      workspaceOnly: true              // Restrict file ops to workspace directory
+    }
+  },
+
+  // ─── COMPACTION ─────────────────────────────────────────────────────
+  //
+  // How the agent handles growing conversation context.
+  //
+  compaction: {
+    mode: "safeguard",                  // "safeguard" (conservative) or "aggressive"
+    memoryFlush: true                   // Save durable facts before compacting (recommended)
+    // model: "anthropic/claude-haiku-4-5"  // Use cheaper model for summarization
+    // identifierPolicy: "strict"       // "strict" | "off" | "custom"
+  },
+
   // ─── SANDBOXING (optional, advanced) ─────────────────────────────
   //
   // Isolate untrusted sessions in containers. Good for security but adds
