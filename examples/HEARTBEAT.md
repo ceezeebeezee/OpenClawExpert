@@ -1,7 +1,11 @@
 # HEARTBEAT.md — Periodic Check-in Checklist
+
 # Place this file at: ~/.openclaw/workspace/HEARTBEAT.md
+
 #
+
 # The agent reads this file on every heartbeat cycle (default: every 30 minutes).
+
 # If nothing needs attention, reply HEARTBEAT_OK (the message will be dropped).
 
 ## Morning Brief (first heartbeat of the day)
@@ -83,6 +87,7 @@ Check in this order. Stop at the first item that needs attention:
 ## Manual Triggers
 
 To manually trigger a heartbeat-like check at any time:
+
 ```
 openclaw system event --text "Check my inbox for anything urgent" --mode now
 ```

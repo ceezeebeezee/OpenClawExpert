@@ -3,7 +3,7 @@ name: quick-capture
 description: "Route notes, todos, ideas, and links to the right system based on message prefix"
 version: 1.0.0
 user-invocable: false
-metadata: {"openclaw": {"emoji": "📥", "always": true}}
+metadata: { "openclaw": { "emoji": "📥", "always": true } }
 ---
 
 ## Quick Capture Skill
@@ -16,13 +16,13 @@ starts with a recognized prefix, automatically route it to the right system.
 Activate this skill when the user's message starts with any of these prefixes
 (case-insensitive):
 
-| Prefix | Route | Action |
-|--------|-------|--------|
-| `note:` | Second Brain | Save as a concept or reference in the second brain |
-| `todo:` | Todoist | Create a new task in Todoist inbox |
-| `idea:` | Memory Log | Save to today's memory log under "## Ideas" |
-| `link:` | Second Brain | Archive URL with a brief summary |
-| `remind:` | Calendar/Cron | Create a reminder at specified time |
+| Prefix    | Route         | Action                                             |
+| --------- | ------------- | -------------------------------------------------- |
+| `note:`   | Second Brain  | Save as a concept or reference in the second brain |
+| `todo:`   | Todoist       | Create a new task in Todoist inbox                 |
+| `idea:`   | Memory Log    | Save to today's memory log under "## Ideas"        |
+| `link:`   | Second Brain  | Archive URL with a brief summary                   |
+| `remind:` | Calendar/Cron | Create a reminder at specified time                |
 
 ## Instructions
 

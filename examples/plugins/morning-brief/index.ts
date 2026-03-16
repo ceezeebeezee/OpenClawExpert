@@ -43,7 +43,7 @@ interface PluginApi {
   registerHook: (
     event: string,
     handler: () => Promise<void>,
-    meta: { name: string; description: string }
+    meta: { name: string; description: string },
   ) => void;
   registerService: (service: ServiceDefinition) => void;
 }
@@ -178,17 +178,17 @@ export default function morningBriefPlugin(api: PluginApi) {
           "Skip any section where the required skill is not available. " +
           "Keep the entire briefing under 500 words.",
         sectionGuide: {
-          calendar: "Use google-calendar skill to list today's events with times.",
+          calendar:
+            "Use google-calendar skill to list today's events with times.",
           email:
             "Use gmail skill to list unread emails from the last 12 hours. " +
             "Summarize important ones, skip newsletters and automated notifications.",
           tasks:
             "Use todoist skill to list tasks due today and overdue tasks. " +
             "Group by priority if possible.",
-          weather:
-            pluginConfig.includeWeather
-              ? `Use web-search to get today's weather for ${pluginConfig.weatherLocation || "user's location"}.`
-              : "Weather section disabled in config.",
+          weather: pluginConfig.includeWeather
+            ? `Use web-search to get today's weather for ${pluginConfig.weatherLocation || "user's location"}.`
+            : "Weather section disabled in config.",
           notes:
             "Check yesterday's memory log for any captured notes, ideas, or links. " +
             "Summarize if present.",
@@ -226,14 +226,17 @@ export default function morningBriefPlugin(api: PluginApi) {
   api.registerHook(
     "command:new",
     async () => {
-      api.logger.info("New session started — checking if briefing was delivered today");
+      api.logger.info(
+        "New session started — checking if briefing was delivered today",
+      );
       // [PLACEHOLDER] Check if briefing already sent today
       // If not, and it's within the briefing window, trigger it
     },
     {
       name: "morning-brief.session-check",
-      description: "Check if daily briefing needs to be delivered on new session",
-    }
+      description:
+        "Check if daily briefing needs to be delivered on new session",
+    },
   );
 
   // ─── SERVICE: Briefing scheduler (optional) ───────────────────

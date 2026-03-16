@@ -1,7 +1,11 @@
 # USER.md — User Profile
+
 # Place this file at: ~/.openclaw/workspace/USER.md
+
 #
+
 # Fill in your actual details below. This gives the agent baseline knowledge
+
 # so it doesn't have to re-learn things every session.
 
 ## Identity
@@ -22,6 +26,7 @@
 ## Projects
 
 ### AIBoard
+
 - **Path**: `~/Projects/NokNok/aiboard/`
 - **Stack**: Next.js 14, TypeScript, SQLite
 - **Description**: Multi-AI round-table discussion platform (Claude, Gemini, GPT)
@@ -29,6 +34,7 @@
 - **Dev command**: `npm run dev` (port 3000)
 
 ### Timezone Converter
+
 - **Path**: `~/Projects/NokNok/Timezone Converter/`
 - **Stack**: Vanilla JS, Chrome Extension MV3
 - **Description**: Chrome extension for timezone conversion
@@ -36,6 +42,7 @@
 - **No build step**: Load as unpacked extension
 
 ### Career Navigator
+
 - **Path**: `~/Projects/NokNok/Career Navigator/app/`
 - **Stack**: React 19, Vite, TypeScript, Tailwind v4
 - **Description**: Educational competency visualization (767 skills, 70 professions)
@@ -43,6 +50,7 @@
 - **Dev command**: `npm run dev` (port 5173)
 
 ### czbz.ai
+
 - **Path**: `~/Projects/NokNok/czbz/`
 - **Stack**: Static HTML, Tailwind CDN, Vercel Serverless
 - **Description**: Portfolio landing site

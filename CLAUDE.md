@@ -10,16 +10,16 @@ OpenClaw agent learning guide and example configuration templates. Documentation
 
 ## File Structure
 
-| File | Purpose |
-|------|---------|
-| `OPENCLAW_EXPERT_GUIDE.md` | 23-chapter learning guide (main document, includes architecture diagrams) |
-| `examples/SOUL.md` | Agent personality template (includes email voice, scheduling prefs) |
-| `examples/USER.md` | User profile template |
-| `examples/AGENTS.md` | Operating rules (email handling, scheduling, admin workflows) |
-| `examples/HEARTBEAT.md` | Periodic check-in checklist (9 checks, morning brief format) |
-| `examples/openclaw.json` | Full JSON5 config with inline comments and skill entries |
-| `examples/skills/*/SKILL.md` | Custom skill templates (quick-capture, email-triage) |
-| `examples/plugins/morning-brief/` | Plugin scaffold (manifest + TypeScript with `[PLACEHOLDER]` markers) |
+| File                              | Purpose                                                                                         |
+| --------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `OPENCLAW_EXPERT_GUIDE.md`        | 24-chapter learning guide (main document, includes architecture diagrams + NanoClaw comparison) |
+| `examples/SOUL.md`                | Agent personality template (includes email voice, scheduling prefs)                             |
+| `examples/USER.md`                | User profile template                                                                           |
+| `examples/AGENTS.md`              | Operating rules (email handling, scheduling, admin workflows)                                   |
+| `examples/HEARTBEAT.md`           | Periodic check-in checklist (9 checks, morning brief format)                                    |
+| `examples/openclaw.json`          | Full JSON5 config with inline comments and skill entries                                        |
+| `examples/skills/*/SKILL.md`      | Custom skill templates (quick-capture, email-triage)                                            |
+| `examples/plugins/morning-brief/` | Plugin scaffold (manifest + TypeScript with `[PLACEHOLDER]` markers)                            |
 
 ## Content Guidelines
 
@@ -33,5 +33,5 @@ OpenClaw agent learning guide and example configuration templates. Documentation
 ## Gotchas
 
 - When pushing to remote for the first time after it has existing content (e.g. a README), use `git pull origin main --rebase` before `git push`
-- The guide is large (~74KB) — when editing, read specific line ranges rather than the whole file
+- The guide is large (~125KB, 2800+ lines) — when editing, read specific line ranges rather than the whole file
 - Workspace `.md` files in `examples/` mirror real OpenClaw workspace file names (SOUL.md, AGENTS.md, etc.) — don't confuse them with project docs

@@ -29,7 +29,10 @@
   "uiHints": {
     "briefingTime": { "label": "Briefing Time", "placeholder": "07:00" },
     "includeWeather": { "label": "Include Weather" },
-    "weatherLocation": { "label": "Weather Location", "placeholder": "New York" },
+    "weatherLocation": {
+      "label": "Weather Location",
+      "placeholder": "New York"
+    },
     "includeNews": { "label": "Include Tech News" }
   }
 }

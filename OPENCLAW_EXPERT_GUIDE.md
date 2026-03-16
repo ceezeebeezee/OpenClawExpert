@@ -1,6 +1,6 @@
 # OpenClaw Expert Guide
 
-> **Version**: 1.2 | **Created**: 2026-03-03 | **Updated**: 2026-03-14 | **Next update**: 2026-03-17
+> **Version**: 1.3 | **Created**: 2026-03-03 | **Updated**: 2026-03-14 | **Next update**: 2026-03-17
 >
 > Goal: Make you an OpenClaw expert. This is a living document — updated every 3 days with new
 > insights, corrections, and advanced patterns as you learn.
@@ -30,19 +30,21 @@
 19. [Real-World Workflows: Email, Scheduling & Admin](#19-real-world-workflows)
 20. [CLI Command Reference](#20-cli-command-reference)
 21. [Troubleshooting](#21-troubleshooting)
-22. [Cost & Infrastructure](#22-cost--infrastructure)
-23. [Learning Roadmap](#23-learning-roadmap)
+22. [NanoClaw Comparison](#22-nanoclaw-comparison)
+23. [Cost & Infrastructure](#23-cost--infrastructure)
+24. [Learning Roadmap](#24-learning-roadmap)
 
 ---
 
 ## 1. What Is OpenClaw?
 
 OpenClaw is an open-source, local-first AI agent that you run on your own hardware. Unlike ChatGPT
-or other chat-only tools, OpenClaw is **agentic** — it doesn't just respond, it *acts*. It connects
+or other chat-only tools, OpenClaw is **agentic** — it doesn't just respond, it _acts_. It connects
 to messaging platforms (Telegram, WhatsApp, Discord, Slack, iMessage, Signal) and uses AI models
 (Claude, GPT, Gemini, local Ollama models) to perform real tasks on your behalf.
 
 **Key differentiators:**
+
 - **Local-first**: Runs on your machine. Your data stays with you.
 - **Messaging-as-UI**: You talk to it where you already are — Telegram, WhatsApp, etc.
 - **Proactive**: The heartbeat system lets it act autonomously (check email, prepare briefings).
@@ -54,14 +56,14 @@ to messaging platforms (Telegram, WhatsApp, Discord, Slack, iMessage, Signal) an
 
 ### Latest Releases (as of March 2026)
 
-| Release | Date | Highlights |
-|---------|------|------------|
-| **v2026.3.12** | Mar 12 | Shared `/fast` mode, first-class Ollama onboarding, resumable ACP sessions, Dashboard v2 (modular views, command palette, mobile tabs), browser origin validation security fix |
-| **v2026.3.7** | Mar 7 | **ContextEngine Plugin System** (pluggable context management), durable ACP bindings (survive restarts), model resilience (auto-fallback chains), scoped subagent runtime, 200+ bug fixes |
-| **v2026.2.21** | Feb 21 | Gemini 3.1 Pro Preview support |
-| **v2026.2.17** | Feb 17 | Deterministic sub-agent spawning, structured inter-agent communication |
-| **v2026.2.14-15** | Feb | 50+ security hardening measures, exec approval fixes |
-| **v2026.2.12** | Feb 12 | 40 security fixes, per-channel model control |
+| Release           | Date   | Highlights                                                                                                                                                                                |
+| ----------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **v2026.3.12**    | Mar 12 | Shared `/fast` mode, first-class Ollama onboarding, resumable ACP sessions, Dashboard v2 (modular views, command palette, mobile tabs), browser origin validation security fix            |
+| **v2026.3.7**     | Mar 7  | **ContextEngine Plugin System** (pluggable context management), durable ACP bindings (survive restarts), model resilience (auto-fallback chains), scoped subagent runtime, 200+ bug fixes |
+| **v2026.2.21**    | Feb 21 | Gemini 3.1 Pro Preview support                                                                                                                                                            |
+| **v2026.2.17**    | Feb 17 | Deterministic sub-agent spawning, structured inter-agent communication                                                                                                                    |
+| **v2026.2.14-15** | Feb    | 50+ security hardening measures, exec approval fixes                                                                                                                                      |
+| **v2026.2.12**    | Feb 12 | 40 security fixes, per-channel model control                                                                                                                                              |
 
 ---
 
@@ -118,12 +120,12 @@ to messaging platforms (Telegram, WhatsApp, Discord, Slack, iMessage, Signal) an
 
 **The four tiers:**
 
-| Tier | Component | Role |
-|------|-----------|------|
-| 1 | **Channels** | Input/output adapters for messaging platforms |
-| 2 | **Gateway** | Central orchestrator — session management, routing, tool execution |
-| 3 | **LLM Brain** | AI model that reasons about your messages and decides what to do |
-| 4 | **Skills / Toolbox** | The actual capabilities — shell commands, browser control, file ops |
+| Tier | Component            | Role                                                                |
+| ---- | -------------------- | ------------------------------------------------------------------- |
+| 1    | **Channels**         | Input/output adapters for messaging platforms                       |
+| 2    | **Gateway**          | Central orchestrator — session management, routing, tool execution  |
+| 3    | **LLM Brain**        | AI model that reasons about your messages and decides what to do    |
+| 4    | **Skills / Toolbox** | The actual capabilities — shell commands, browser control, file ops |
 
 > **Insight**: The Gateway is the single process everything flows through. It runs as a Node.js
 > application (requires Node 22+). On macOS, it can also run as a menubar app. It starts with
@@ -729,7 +731,7 @@ openclaw gateway --token "my-secret"      # API auth token
 /tmp/openclaw/openclaw-YYYY-MM-DD.log   # Gateway logs
 ```
 
-> **Insight**: The Gateway binds to `0.0.0.0` by default, which means *any device on your network*
+> **Insight**: The Gateway binds to `0.0.0.0` by default, which means _any device on your network_
 > can reach it. Always set `bind: "loopback"` to restrict to localhost. If you need remote access,
 > use Tailscale Serve (never Funnel — that exposes to the public internet).
 
@@ -742,15 +744,15 @@ details of receiving and sending messages.
 
 ### Supported Channels
 
-| Channel | Stability | Setup | Group Support | Notes |
-|---------|-----------|-------|---------------|-------|
-| **Telegram** | High | Easy | Yes (mention) | Best for dev/automation. Bot API. |
-| **WhatsApp** | Medium | Hard | Yes (mention) | Uses Baileys library. QR auth. |
-| **iMessage** | High | Easy | Yes | macOS only. AppleScript bridge. |
-| **Slack** | High | Easy | Yes (thread) | Socket Mode. Workspace-scoped. |
-| **Discord** | Medium | Easy | Yes (mention) | WebSocket. Watch for zombie connections. |
-| **Signal** | High | Hard | Yes | Privacy-focused. signal-cli bridge. |
-| **WebChat** | High | Built-in | No | Testing/development only. |
+| Channel      | Stability | Setup    | Group Support | Notes                                    |
+| ------------ | --------- | -------- | ------------- | ---------------------------------------- |
+| **Telegram** | High      | Easy     | Yes (mention) | Best for dev/automation. Bot API.        |
+| **WhatsApp** | Medium    | Hard     | Yes (mention) | Uses Baileys library. QR auth.           |
+| **iMessage** | High      | Easy     | Yes           | macOS only. AppleScript bridge.          |
+| **Slack**    | High      | Easy     | Yes (thread)  | Socket Mode. Workspace-scoped.           |
+| **Discord**  | Medium    | Easy     | Yes (mention) | WebSocket. Watch for zombie connections. |
+| **Signal**   | High      | Hard     | Yes           | Privacy-focused. signal-cli bridge.      |
+| **WebChat**  | High      | Built-in | No            | Testing/development only.                |
 
 ### Telegram Setup
 
@@ -786,6 +788,7 @@ You can specify different tones per channel in SOUL.md:
 
 ```markdown
 # Communication Style
+
 - On Telegram: casual, direct, use short messages. Technical when discussing code.
 - On WhatsApp: same casual tone, optimized for mobile reading. Shorter responses.
 - On Slack: professional, use threads, slightly more formal.
@@ -794,16 +797,17 @@ You can specify different tones per channel in SOUL.md:
 
 ### MESSAGING.md — Outbound Routing
 
-This file tells the agent *how* to reach people across channels:
+This file tells the agent _how_ to reach people across channels:
 
 ```markdown
 # Contacts
+
 - Mom: WhatsApp (+1234567890)
 - Work team: Slack (#general)
 - Dev bot: Telegram (@mydevbot)
 ```
 
-The agent uses this to decide which channel to use when *it* needs to reach out (via heartbeat
+The agent uses this to decide which channel to use when _it_ needs to reach out (via heartbeat
 or proactive messaging).
 
 > **Insight**: Start with ONE channel. Get it stable, learn the configuration patterns, understand
@@ -817,18 +821,18 @@ or proactive messaging).
 These are the `.md` files that define your agent's personality, knowledge, and behavior.
 They live in `~/.openclaw/workspace/` (or `~/.openclaw/agents/<id>/workspace/` for multi-agent).
 
-| File | Purpose | Loaded When |
-|------|---------|-------------|
-| **SOUL.md** | Personality, tone, boundaries | Every session |
-| **USER.md** | Info about you (name, role, preferences) | Every session |
-| **AGENTS.md** | Operating instructions and rules | Every session |
-| **MEMORY.md** | Curated long-term facts | Normal sessions (not heartbeat) |
-| **IDENTITY.md** | Agent name, emoji, theme | Session initialization |
-| **TOOLS.md** | Documentation for local tools/commands | Every session |
-| **HEARTBEAT.md** | Periodic check-in checklist | Heartbeat sessions only |
-| **BOOT.md** | Startup procedures | Gateway startup (via boot-md hook) |
-| **MESSAGING.md** | Outbound message routing rules | When agent needs to reach out |
-| **memory/YYYY-MM-DD.md** | Daily append-only logs | Session start (recent days) |
+| File                     | Purpose                                  | Loaded When                        |
+| ------------------------ | ---------------------------------------- | ---------------------------------- |
+| **SOUL.md**              | Personality, tone, boundaries            | Every session                      |
+| **USER.md**              | Info about you (name, role, preferences) | Every session                      |
+| **AGENTS.md**            | Operating instructions and rules         | Every session                      |
+| **MEMORY.md**            | Curated long-term facts                  | Normal sessions (not heartbeat)    |
+| **IDENTITY.md**          | Agent name, emoji, theme                 | Session initialization             |
+| **TOOLS.md**             | Documentation for local tools/commands   | Every session                      |
+| **HEARTBEAT.md**         | Periodic check-in checklist              | Heartbeat sessions only            |
+| **BOOT.md**              | Startup procedures                       | Gateway startup (via boot-md hook) |
+| **MESSAGING.md**         | Outbound message routing rules           | When agent needs to reach out      |
+| **memory/YYYY-MM-DD.md** | Daily append-only logs                   | Session start (recent days)        |
 
 ### How They Compose
 
@@ -849,7 +853,7 @@ The order matters — files loaded later can override earlier ones. The full con
 
 > **Insight**: Every character in these files costs tokens. SOUL.md should be 1-2 pages max.
 > MEMORY.md should be curated, not a dump. The agent itself maintains memory — you teach it
-> *what's important*, and it writes to the daily logs and curates into MEMORY.md over time.
+> _what's important_, and it writes to the daily logs and curates into MEMORY.md over time.
 
 ### See `examples/` directory for ready-to-use templates of each file.
 
@@ -906,10 +910,10 @@ openclaw memory search "project deploy" # Test semantic search
 
 Two built-in tools power memory operations:
 
-| Tool | Purpose |
-|------|---------|
-| `memory_search` | Semantic recall — hybrid vector + BM25 retrieval over indexed workspace |
-| `memory_get` | Targeted file reads with graceful degradation (returns empty, never errors) |
+| Tool            | Purpose                                                                     |
+| --------------- | --------------------------------------------------------------------------- |
+| `memory_search` | Semantic recall — hybrid vector + BM25 retrieval over indexed workspace     |
+| `memory_get`    | Targeted file reads with graceful degradation (returns empty, never errors) |
 
 ### Advanced Search Configuration
 
@@ -930,6 +934,7 @@ is summarized. Controlled by `agents.defaults.compaction.memoryFlush`. The user 
 ### Embedding Providers
 
 Auto-selected based on available credentials (priority order):
+
 1. Local GGUF model (via `node-llama-cpp`) — zero cost, requires RAM
 2. OpenAI embeddings — fast, reliable
 3. Google Gemini embeddings
@@ -1034,23 +1039,23 @@ When the user asks to [trigger condition], do the following:
 
 ### Frontmatter Fields Reference
 
-| Field | Default | Purpose |
-|-------|---------|---------|
-| `name` | (required) | Skill identifier |
-| `description` | (required) | What the skill does |
-| `user-invocable` | `true` | Exposed as `/name` slash command |
-| `disable-model-invocation` | `false` | If true, only triggered by explicit `/name` |
-| `command-dispatch` | — | Bypass LLM, dispatch directly to a tool |
-| `command-tool` | — | Which tool to invoke when command-dispatched |
-| `command-arg-mode` | `raw` | How args are forwarded to the tool |
-| `homepage` | — | URL shown in macOS Skills UI |
-| `metadata.openclaw.emoji` | — | Icon in macOS Skills UI |
-| `metadata.openclaw.os` | all | Platform filter (darwin, linux, win32) |
-| `metadata.openclaw.requires.bins` | — | Required binaries on PATH |
-| `metadata.openclaw.requires.env` | — | Required environment variables |
-| `metadata.openclaw.requires.config` | — | Required config keys |
-| `metadata.openclaw.always` | `false` | Skip gating, always load |
-| `metadata.openclaw.primaryEnv` | — | Convenience API key mapping |
+| Field                               | Default    | Purpose                                      |
+| ----------------------------------- | ---------- | -------------------------------------------- |
+| `name`                              | (required) | Skill identifier                             |
+| `description`                       | (required) | What the skill does                          |
+| `user-invocable`                    | `true`     | Exposed as `/name` slash command             |
+| `disable-model-invocation`          | `false`    | If true, only triggered by explicit `/name`  |
+| `command-dispatch`                  | —          | Bypass LLM, dispatch directly to a tool      |
+| `command-tool`                      | —          | Which tool to invoke when command-dispatched |
+| `command-arg-mode`                  | `raw`      | How args are forwarded to the tool           |
+| `homepage`                          | —          | URL shown in macOS Skills UI                 |
+| `metadata.openclaw.emoji`           | —          | Icon in macOS Skills UI                      |
+| `metadata.openclaw.os`              | all        | Platform filter (darwin, linux, win32)       |
+| `metadata.openclaw.requires.bins`   | —          | Required binaries on PATH                    |
+| `metadata.openclaw.requires.env`    | —          | Required environment variables               |
+| `metadata.openclaw.requires.config` | —          | Required config keys                         |
+| `metadata.openclaw.always`          | `false`    | Skip gating, always load                     |
+| `metadata.openclaw.primaryEnv`      | —          | Convenience API key mapping                  |
 
 ### Installing Skills
 
@@ -1088,13 +1093,13 @@ what SKILL.md instructions can do. They run in-process with the Gateway.
 
 ### When to Use a Skill vs. a Plugin
 
-| Use a Skill when... | Use a Plugin when... |
-|----------------------|----------------------|
-| Instructions are enough | You need custom code logic |
-| Calling existing tools | You need new tools |
-| Simple workflows | Complex state management |
-| No external dependencies | You need npm packages |
-| Quick to iterate | Performance-critical operations |
+| Use a Skill when...      | Use a Plugin when...            |
+| ------------------------ | ------------------------------- |
+| Instructions are enough  | You need custom code logic      |
+| Calling existing tools   | You need new tools              |
+| Simple workflows         | Complex state management        |
+| No external dependencies | You need npm packages           |
+| Quick to iterate         | Performance-critical operations |
 
 ### Plugin Architecture
 
@@ -1140,13 +1145,13 @@ export default function (api) {
     parameters: {
       type: "object",
       properties: {
-        input: { type: "string", description: "The input" }
-      }
+        input: { type: "string", description: "The input" },
+      },
     },
     handler: async ({ input }) => {
       // Your logic here
       return { result: `Processed: ${input}` };
-    }
+    },
   });
 
   // Register a slash command (no LLM involved)
@@ -1155,21 +1160,23 @@ export default function (api) {
     description: "Show plugin status",
     acceptsArgs: false,
     requireAuth: true,
-    handler: (ctx) => ({ text: "Status: active" })
+    handler: (ctx) => ({ text: "Status: active" }),
   });
 
   // Register a background service
   api.registerService({
     id: "my-service",
     start: () => api.logger.info("Service started"),
-    stop: () => api.logger.info("Service stopped")
+    stop: () => api.logger.info("Service stopped"),
   });
 
   // Register a hook
   api.registerHook(
     "command:new",
-    async () => { /* runs when /new is invoked */ },
-    { name: "my-plugin.on-new", description: "Custom logic on session reset" }
+    async () => {
+      /* runs when /new is invoked */
+    },
+    { name: "my-plugin.on-new", description: "Custom logic on session reset" },
   );
 
   // Register a Gateway RPC method
@@ -1178,27 +1185,31 @@ export default function (api) {
   });
 
   // Register CLI commands
-  api.registerCli(({ program }) => {
-    program.command("my-cmd")
-      .description("My custom CLI command")
-      .action(() => console.log("Hello from my plugin"));
-  }, { commands: ["my-cmd"] });
+  api.registerCli(
+    ({ program }) => {
+      program
+        .command("my-cmd")
+        .description("My custom CLI command")
+        .action(() => console.log("Hello from my plugin"));
+    },
+    { commands: ["my-cmd"] },
+  );
 }
 ```
 
 ### Plugin Capabilities Summary
 
-| Capability | Method | Use Case |
-|------------|--------|----------|
-| **Agent Tools** | `api.registerTool()` | New actions the LLM can invoke |
-| **Commands** | `api.registerCommand()` | Slash commands (bypass LLM) |
-| **Services** | `api.registerService()` | Background processes |
-| **Hooks** | `api.registerHook()` | React to events |
-| **RPC Methods** | `api.registerGatewayMethod()` | Extend Gateway API |
-| **CLI** | `api.registerCli()` | New terminal commands |
-| **Channels** | `api.registerChannel()` | Custom messaging integrations |
-| **Providers** | `api.registerProvider()` | Custom LLM provider auth |
-| **Skills** | `skills/` directory | Plugin-bundled skills |
+| Capability      | Method                        | Use Case                       |
+| --------------- | ----------------------------- | ------------------------------ |
+| **Agent Tools** | `api.registerTool()`          | New actions the LLM can invoke |
+| **Commands**    | `api.registerCommand()`       | Slash commands (bypass LLM)    |
+| **Services**    | `api.registerService()`       | Background processes           |
+| **Hooks**       | `api.registerHook()`          | React to events                |
+| **RPC Methods** | `api.registerGatewayMethod()` | Extend Gateway API             |
+| **CLI**         | `api.registerCli()`           | New terminal commands          |
+| **Channels**    | `api.registerChannel()`       | Custom messaging integrations  |
+| **Providers**   | `api.registerProvider()`      | Custom LLM provider auth       |
+| **Skills**      | `skills/` directory           | Plugin-bundled skills          |
 
 ### Plugin Discovery Precedence
 
@@ -1232,22 +1243,29 @@ shared with sub-agents.
 
 **7 lifecycle hooks:**
 
-| Hook | Phase | Purpose |
-|------|-------|---------|
-| `bootstrap` | Init | Initialize context engine state |
-| `ingest` | Input | Inject new information into context |
-| `assemble` | Build | Construct the final prompt context |
-| `compact` | Compress | Summarize/trim context when window fills |
-| `afterTurn` | Post-turn | Post-processing after each conversation turn |
-| `prepareSubagentSpawn` | Sub-agent | Prepare context before spawning sub-agent |
-| `onSubagentEnded` | Sub-agent | Handle context when sub-agent completes |
+| Hook                   | Phase     | Purpose                                      |
+| ---------------------- | --------- | -------------------------------------------- |
+| `bootstrap`            | Init      | Initialize context engine state              |
+| `ingest`               | Input     | Inject new information into context          |
+| `assemble`             | Build     | Construct the final prompt context           |
+| `compact`              | Compress  | Summarize/trim context when window fills     |
+| `afterTurn`            | Post-turn | Post-processing after each conversation turn |
+| `prepareSubagentSpawn` | Sub-agent | Prepare context before spawning sub-agent    |
+| `onSubagentEnded`      | Sub-agent | Handle context when sub-agent completes      |
 
 **Registration:**
+
 ```typescript
 api.registerContextEngine("my-context-engine", (config) => ({
-  bootstrap: async (ctx) => { /* initialize */ },
-  assemble: async (ctx) => { /* build system prompt */ },
-  compact: async (ctx) => { /* summarize old context */ },
+  bootstrap: async (ctx) => {
+    /* initialize */
+  },
+  assemble: async (ctx) => {
+    /* build system prompt */
+  },
+  compact: async (ctx) => {
+    /* summarize old context */
+  },
   // ... other hooks
 }));
 ```
@@ -1274,138 +1292,138 @@ Everything is configured in `~/.openclaw/openclaw.json` (JSON5 format — commen
   agents: {
     defaults: {
       model: {
-        primary: "anthropic/claude-sonnet-4-6",     // Daily driver
-        fallbacks: ["anthropic/claude-haiku-4-5"]   // Cheaper fallback
+        primary: "anthropic/claude-sonnet-4-6", // Daily driver
+        fallbacks: ["anthropic/claude-haiku-4-5"], // Cheaper fallback
       },
       models: {
         "anthropic/claude-sonnet-4-6": {
           alias: "sonnet",
-          temperature: 0.7,                         // 0 = focused, 2 = creative
+          temperature: 0.7, // 0 = focused, 2 = creative
           maxTokens: 4096,
-          cacheControlTtl: 300                      // Prompt caching (seconds)
-        }
+          cacheControlTtl: 300, // Prompt caching (seconds)
+        },
       },
       heartbeat: {
-        every: "30m",                               // Check-in interval
-        activeHours: "07:00-23:00",                 // Don't wake at 3am
-        target: "last",                             // Reply in last active chat
-        model: "anthropic/claude-haiku-4-5"         // Use cheaper model for heartbeat
-      }
-    }
+        every: "30m", // Check-in interval
+        activeHours: "07:00-23:00", // Don't wake at 3am
+        target: "last", // Reply in last active chat
+        model: "anthropic/claude-haiku-4-5", // Use cheaper model for heartbeat
+      },
+    },
   },
 
   // ─── CHANNELS ──────────────────────────────────────────────────
   channels: {
     telegram: {
-      botToken: "${TELEGRAM_BOT_TOKEN}",            // From @BotFather
-      dmPolicy: "pairing",                          // Require pairing handshake
-      groupPolicy: "mention",                       // Only respond when @mentioned
-      streamMode: "partial",                        // Show typing indicators
-      allowFrom: [123456789]                        // Telegram user IDs
+      botToken: "${TELEGRAM_BOT_TOKEN}", // From @BotFather
+      dmPolicy: "pairing", // Require pairing handshake
+      groupPolicy: "mention", // Only respond when @mentioned
+      streamMode: "partial", // Show typing indicators
+      allowFrom: [123456789], // Telegram user IDs
     },
     whatsapp: {
-      allowFrom: ["+1234567890"],                   // Your phone number
+      allowFrom: ["+1234567890"], // Your phone number
       // QR auth handled by: openclaw channels login --channel whatsapp
-    }
+    },
   },
 
   // ─── SKILLS ────────────────────────────────────────────────────
   skills: {
     load: {
-      watch: true,                                  // Hot-reload skill changes
-      extraDirs: ["~/my-custom-skills"]             // Additional skill directories
+      watch: true, // Hot-reload skill changes
+      extraDirs: ["~/my-custom-skills"], // Additional skill directories
     },
     entries: {
       "second-brain": {
         enabled: true,
-        apiKey: { source: "env", provider: "default", id: "ENSUE_API_KEY" }
+        apiKey: { source: "env", provider: "default", id: "ENSUE_API_KEY" },
       },
       "web-search": {
         enabled: true,
-        env: { BRAVE_API_KEY: "${BRAVE_API_KEY}" }
+        env: { BRAVE_API_KEY: "${BRAVE_API_KEY}" },
       },
       "some-dangerous-skill": {
-        enabled: false                              // Disable specific skills
-      }
-    }
+        enabled: false, // Disable specific skills
+      },
+    },
   },
 
   // ─── TOOLS ─────────────────────────────────────────────────────
   tools: {
     web: {
       search: {
-        provider: "brave",                          // or "google"
-        apiKey: "${BRAVE_API_KEY}"
-      }
+        provider: "brave", // or "google"
+        apiKey: "${BRAVE_API_KEY}",
+      },
     },
     media: {
       audio: {
         // Whisper transcription config
-      }
-    }
+      },
+    },
   },
 
   // ─── PLUGINS ───────────────────────────────────────────────────
   plugins: {
     enabled: true,
     allow: ["morning-brief", "workspace-switcher"], // Allowlist (optional)
-    deny: [],                                       // Denylist (optional)
+    deny: [], // Denylist (optional)
     load: {
-      paths: ["~/Projects/OpenClaw Learning/examples/plugins/morning-brief"]
+      paths: ["~/Projects/OpenClaw Learning/examples/plugins/morning-brief"],
     },
     entries: {
       "morning-brief": {
         enabled: true,
-        config: { briefingTime: "07:00" }
-      }
+        config: { briefingTime: "07:00" },
+      },
     },
     slots: {
-      memory: "memory-core"                         // Exclusive slot selection
-    }
+      memory: "memory-core", // Exclusive slot selection
+    },
   },
 
   // ─── SESSIONS ──────────────────────────────────────────────────
   session: {
-    dmScope: "per-peer",                            // One session per person
+    dmScope: "per-peer", // One session per person
     reset: {
-      mode: "daily",                                // Auto-reset at 4am
+      mode: "daily", // Auto-reset at 4am
       // OR mode: "idle", idleMinutes: 120          // Reset after 2hr idle
     },
-    store: "~/.openclaw/agents/default/sessions/sessions.json"
+    store: "~/.openclaw/agents/default/sessions/sessions.json",
   },
 
   // ─── CONTEXT MANAGEMENT ────────────────────────────────────────
   contextPruning: {
-    mode: "cache-ttl"                               // or "sliding", "none"
+    mode: "cache-ttl", // or "sliding", "none"
   },
   compaction: {
-    mode: "safeguard"                               // or "aggressive"
+    mode: "safeguard", // or "aggressive"
   },
 
   // ─── GATEWAY ───────────────────────────────────────────────────
   gateway: {
     port: 18789,
     mode: "local",
-    bind: "loopback",                               // SECURITY: always loopback
+    bind: "loopback", // SECURITY: always loopback
     auth: {
-      token: "${OPENCLAW_TOKEN}"                    // SECURITY: always set this
-    }
+      token: "${OPENCLAW_TOKEN}", // SECURITY: always set this
+    },
   },
 
   // ─── MESSAGES ──────────────────────────────────────────────────
   messages: {
     tts: {
-      auto: "never"                                 // or "always", "dm-only"
+      auto: "never", // or "always", "dm-only"
       // Provider: elevenlabs, openai, or edge-tts
-    }
+    },
   },
 
   // ─── SANDBOXING ────────────────────────────────────────────────
   sandbox: {
-    mode: "non-main",                               // Sandbox non-main sessions
-    scope: "session",                               // One container per session
-    workspaceAccess: "ro"                           // Read-only workspace in sandbox
-  }
+    mode: "non-main", // Sandbox non-main sessions
+    scope: "session", // One container per session
+    workspaceAccess: "ro", // Read-only workspace in sandbox
+  },
 }
 ```
 
@@ -1485,11 +1503,11 @@ compaction: {
 
 ### Compaction vs. Pruning
 
-| | Compaction | Pruning |
-|---|-----------|---------|
-| **What** | Summarizes old turns | Trims old tool results |
-| **Persistence** | Persists in JSONL | In-memory only |
-| **Scope** | Entire conversation history | Tool result payloads |
+|                 | Compaction                  | Pruning                |
+| --------------- | --------------------------- | ---------------------- |
+| **What**        | Summarizes old turns        | Trims old tool results |
+| **Persistence** | Persists in JSONL           | In-memory only         |
+| **Scope**       | Entire conversation history | Tool result payloads   |
 
 ### Context Pruning
 
@@ -1529,11 +1547,11 @@ boundaries. If you need adversarial-user isolation, use separate gateways on sep
 
 Three modes protect the Gateway control plane:
 
-| Mode | Config | Best For |
-|------|--------|----------|
-| **Token** (recommended) | `gateway.auth.mode: "token"` | Solo use, simple setup |
-| **Password** | `gateway.auth.mode: "password"` | Shared access with rotating creds |
-| **Trusted-proxy** | `gateway.auth.mode: "trusted-proxy"` | Behind reverse proxy (Caddy/nginx) |
+| Mode                    | Config                               | Best For                           |
+| ----------------------- | ------------------------------------ | ---------------------------------- |
+| **Token** (recommended) | `gateway.auth.mode: "token"`         | Solo use, simple setup             |
+| **Password**            | `gateway.auth.mode: "password"`      | Shared access with rotating creds  |
+| **Trusted-proxy**       | `gateway.auth.mode: "trusted-proxy"` | Behind reverse proxy (Caddy/nginx) |
 
 ```json5
 // Token mode (recommended)
@@ -1550,29 +1568,31 @@ forward these from custom reverse proxies.
 
 ### 10 Essential Controls
 
-| # | Control | How | Why |
-|---|---------|-----|-----|
-| 1 | **Loopback binding** | `gateway.bind: "loopback"` | Prevents network access to gateway |
-| 2 | **Auth token** | `gateway.auth.token` | Authenticates all Gateway API calls |
-| 3 | **Channel allowlists** | `channels.*.allowFrom` | Only your accounts can talk to the agent |
-| 4 | **File permissions** | `chmod 600 ~/.openclaw/.env` | Protects secrets from other users |
-| 5 | **Pairing mode** | `dmPolicy: "pairing"` | Require explicit handshake for new senders |
-| 6 | **HITL for destructive ops** | `tools.exec.security: "ask"` | Human confirms before `rm`, `sudo`, etc. |
-| 7 | **Sandboxing** | `sandbox.mode: "non-main"` | Isolate untrusted sessions in containers |
-| 8 | **Skill review** | Read before installing | Third-party skills are untrusted code |
-| 9 | **Plugin allowlists** | `plugins.allow: [...]` | Only load approved plugins |
-| 10 | **Spending limits** | API provider settings | $5-10/day cap prevents runaway costs |
+| #   | Control                      | How                          | Why                                        |
+| --- | ---------------------------- | ---------------------------- | ------------------------------------------ |
+| 1   | **Loopback binding**         | `gateway.bind: "loopback"`   | Prevents network access to gateway         |
+| 2   | **Auth token**               | `gateway.auth.token`         | Authenticates all Gateway API calls        |
+| 3   | **Channel allowlists**       | `channels.*.allowFrom`       | Only your accounts can talk to the agent   |
+| 4   | **File permissions**         | `chmod 600 ~/.openclaw/.env` | Protects secrets from other users          |
+| 5   | **Pairing mode**             | `dmPolicy: "pairing"`        | Require explicit handshake for new senders |
+| 6   | **HITL for destructive ops** | `tools.exec.security: "ask"` | Human confirms before `rm`, `sudo`, etc.   |
+| 7   | **Sandboxing**               | `sandbox.mode: "non-main"`   | Isolate untrusted sessions in containers   |
+| 8   | **Skill review**             | Read before installing       | Third-party skills are untrusted code      |
+| 9   | **Plugin allowlists**        | `plugins.allow: [...]`       | Only load approved plugins                 |
+| 10  | **Spending limits**          | API provider settings        | $5-10/day cap prevents runaway costs       |
 
 ### Tool Policy Framework
 
 Fine-grained control over what the agent can do:
 
 **Profiles** (baseline):
+
 - `minimal` — messaging only, no automation/runtime/filesystem
 - `messaging` — chat + basic provider tools
 - `full` — all tools available
 
 **Allow/Deny lists** (fine-tuning):
+
 ```json5
 tools: {
   profile: "messaging",                        // Baseline
@@ -1585,6 +1605,7 @@ tools: {
 ```
 
 **Exec approval workflow** (shell commands):
+
 ```json5
 tools: {
   exec: {
@@ -1595,6 +1616,7 @@ tools: {
 ```
 
 **Dangerous control-plane tools** to deny for untrusted surfaces:
+
 - `gateway` — can invoke `config.apply`, `config.patch`, `update.run`
 - `cron` — creates persistent scheduled jobs beyond the current session
 
@@ -1605,6 +1627,7 @@ Two complementary approaches:
 **Container-level**: Run the entire Gateway in Docker (boundary between process and host).
 
 **Tool-level**: Individual tool execution in isolated containers:
+
 ```json5
 sandbox: {
   mode: "non-main",          // Sandbox non-main sessions
@@ -1645,12 +1668,12 @@ local disk permissions, plugin allowlists, policy drift, and model hygiene.
 
 **Critical findings to watch for:**
 
-| Finding | Severity | Fix |
-|---------|----------|-----|
-| `fs.state_dir.perms_world_writable` | Critical | `chmod 700 ~/.openclaw` |
-| `gateway.bind_no_auth` | Critical | Add `gateway.auth.*` |
-| `gateway.tailscale_funnel` | Critical | Disable public Funnel |
-| `open_groups_with_elevated` | Critical | Remove tool allow-all + elevated combo |
+| Finding                             | Severity | Fix                                    |
+| ----------------------------------- | -------- | -------------------------------------- |
+| `fs.state_dir.perms_world_writable` | Critical | `chmod 700 ~/.openclaw`                |
+| `gateway.bind_no_auth`              | Critical | Add `gateway.auth.*`                   |
+| `gateway.tailscale_funnel`          | Critical | Disable public Funnel                  |
+| `open_groups_with_elevated`         | Critical | Remove tool allow-all + elevated combo |
 
 ### Hardened Baseline Configuration
 
@@ -1668,14 +1691,22 @@ Recommended starting point for maximum security:
   },
   tools: {
     profile: "messaging",
-    deny: ["group:automation", "group:runtime", "group:fs",
-            "sessions_spawn", "sessions_send"],
+    deny: [
+      "group:automation",
+      "group:runtime",
+      "group:fs",
+      "sessions_spawn",
+      "sessions_send",
+    ],
     fs: { workspaceOnly: true },
     exec: { security: "deny", ask: "always" },
     elevated: { enabled: false },
   },
   channels: {
-    whatsapp: { dmPolicy: "pairing", groups: { "*": { requireMention: true } } },
+    whatsapp: {
+      dmPolicy: "pairing",
+      groups: { "*": { requireMention: true } },
+    },
     telegram: { dmPolicy: "pairing", groupPolicy: "mention" },
   },
 }
@@ -1690,11 +1721,13 @@ If you suspect compromise:
 **1. Contain**: Stop the Gateway immediately. Set `bind: "loopback"`, disable Tailscale.
 
 **2. Rotate credentials**:
+
 - Gateway auth token (`gateway.auth.token`)
 - Channel credentials (WhatsApp, Telegram, Slack tokens)
 - Model API keys in `auth-profiles.json`
 
 **3. Audit**:
+
 - Review logs at `/tmp/openclaw/openclaw-YYYY-MM-DD.log`
 - Inspect session transcripts (`~/.openclaw/agents/<id>/sessions/*.jsonl`)
 - Run `openclaw security audit --deep`
@@ -1741,6 +1774,7 @@ channel bindings.
 ### Agent Isolation
 
 Each agent operates as a **fully scoped brain**:
+
 - **Own workspace**: SOUL.md, AGENTS.md, USER.md, persona rules
 - **Own state**: `~/.openclaw/agents/<agentId>/agent/auth-profiles.json`
 - **Own sessions**: `~/.openclaw/agents/<agentId>/sessions/*.jsonl`
@@ -1774,6 +1808,7 @@ tools: {
 ```
 
 Communication mechanisms:
+
 - **Webhooks**: One agent invokes a webhook routed to another's session
 - **Shared channels**: A designated channel both agents subscribe to
 - **ACP (Agent Communication Protocol)**: Structured inter-agent task triggering,
@@ -1834,6 +1869,7 @@ Main Agent receives: "Research these 3 topics and summarize"
 ### Tool: `sessions_spawn`
 
 The LLM uses this tool internally:
+
 ```json
 {
   "task": "Research the latest React 19 features",
@@ -1858,21 +1894,21 @@ Hooks are event-driven scripts that run in response to specific agent lifecycle 
 
 ### Available Events
 
-| Event | Fires When |
-|-------|-----------|
-| `command:new` | User runs `/new` (session reset) |
-| `command:reset` | User runs `/reset` |
-| `command:stop` | User runs `/stop` |
-| `gateway:startup` | Gateway starts up |
-| `agent:bootstrap` | Agent initializes |
+| Event             | Fires When                       |
+| ----------------- | -------------------------------- |
+| `command:new`     | User runs `/new` (session reset) |
+| `command:reset`   | User runs `/reset`               |
+| `command:stop`    | User runs `/stop`                |
+| `gateway:startup` | Gateway starts up                |
+| `agent:bootstrap` | Agent initializes                |
 
 ### Bundled Hooks
 
-| Hook | What It Does |
-|------|-------------|
+| Hook             | What It Does                                             |
+| ---------------- | -------------------------------------------------------- |
 | `session-memory` | Saves context to daily memory log when `/new` is invoked |
-| `command-logger` | Audit log of all commands executed |
-| `boot-md` | Runs BOOT.md content on gateway startup |
+| `command-logger` | Audit log of all commands executed                       |
+| `boot-md`        | Runs BOOT.md content on gateway startup                  |
 
 ### Management
 
@@ -1901,36 +1937,36 @@ Your goal: **Personal assistant + second brain + optimize personal and work life
 
 ### Tier 1: Install First (Core Experience)
 
-| Skill | Install | Why |
-|-------|---------|-----|
-| **second-brain** | `clawhub install second-brain` | Structured knowledge base. "Remember this," "what do I know about X." Requires ENSUE_API_KEY. |
-| **web-search** | `clawhub install web-search` | Real-time web research. Requires Brave or Google API key. |
-| **proactive-agent** | `clawhub install proactive-agent` | Scheduled check-ins via Telegram. Habit tracking. Adaptive reminders. |
+| Skill               | Install                           | Why                                                                                           |
+| ------------------- | --------------------------------- | --------------------------------------------------------------------------------------------- |
+| **second-brain**    | `clawhub install second-brain`    | Structured knowledge base. "Remember this," "what do I know about X." Requires ENSUE_API_KEY. |
+| **web-search**      | `clawhub install web-search`      | Real-time web research. Requires Brave or Google API key.                                     |
+| **proactive-agent** | `clawhub install proactive-agent` | Scheduled check-ins via Telegram. Habit tracking. Adaptive reminders.                         |
 
 ### Tier 2: Productivity Layer
 
-| Skill | Install | Why |
-|-------|---------|-----|
+| Skill               | Install                           | Why                                                             |
+| ------------------- | --------------------------------- | --------------------------------------------------------------- |
 | **google-calendar** | `clawhub install google-calendar` | Read/write calendar events. Scheduling conflicts. Daily agenda. |
-| **gmail** | `clawhub install gmail` | Email triage, drafting, sending (with your permission). |
-| **todoist** | `clawhub install todoist` | Task management. Create tasks from conversations. |
-| **cron-scheduler** | `clawhub install cron-scheduler` | Schedule recurring tasks (morning briefs, deployment checks). |
+| **gmail**           | `clawhub install gmail`           | Email triage, drafting, sending (with your permission).         |
+| **todoist**         | `clawhub install todoist`         | Task management. Create tasks from conversations.               |
+| **cron-scheduler**  | `clawhub install cron-scheduler`  | Schedule recurring tasks (morning briefs, deployment checks).   |
 
 ### Tier 3: Information Diet
 
-| Skill | Install | Why |
-|-------|---------|-----|
-| **youtube-watcher** | `clawhub install youtube-watcher` | Fetch transcripts from YouTube channels. Digest videos. |
-| **rss-reader** | `clawhub install rss-reader` | Aggregate tech news from RSS feeds. |
-| **supermemory** | `clawhub install supermemory` | Store articles/URLs. Retrieve with contextual relevance. |
+| Skill               | Install                           | Why                                                      |
+| ------------------- | --------------------------------- | -------------------------------------------------------- |
+| **youtube-watcher** | `clawhub install youtube-watcher` | Fetch transcripts from YouTube channels. Digest videos.  |
+| **rss-reader**      | `clawhub install rss-reader`      | Aggregate tech news from RSS feeds.                      |
+| **supermemory**     | `clawhub install supermemory`     | Store articles/URLs. Retrieve with contextual relevance. |
 
 ### Tier 4: Development Tools
 
-| Skill | Install | Why |
-|-------|---------|-----|
-| **git-automation** | `clawhub install git-automation` | PR management, branch workflows, changelogs. |
-| **vercel-deploy** | `clawhub install vercel-deploy` | Deploy Career Navigator + czbz.ai. |
-| **browser-control** | `clawhub install browser-control` | Test Chrome extensions, web interaction. |
+| Skill               | Install                           | Why                                          |
+| ------------------- | --------------------------------- | -------------------------------------------- |
+| **git-automation**  | `clawhub install git-automation`  | PR management, branch workflows, changelogs. |
+| **vercel-deploy**   | `clawhub install vercel-deploy`   | Deploy Career Navigator + czbz.ai.           |
+| **browser-control** | `clawhub install browser-control` | Test Chrome extensions, web interaction.     |
 
 ### Skills Configuration
 
@@ -1940,14 +1976,20 @@ Add each skill to `~/.openclaw/openclaw.json`:
 {
   skills: {
     entries: {
-      "second-brain": { enabled: true, apiKey: { source: "env", id: "ENSUE_API_KEY" } },
+      "second-brain": {
+        enabled: true,
+        apiKey: { source: "env", id: "ENSUE_API_KEY" },
+      },
       "web-search": { enabled: true },
       "proactive-agent": { enabled: true },
       "google-calendar": { enabled: true },
-      "gmail": { enabled: true },
-      "todoist": { enabled: true, apiKey: { source: "env", id: "TODOIST_API_KEY" } }
-    }
-  }
+      gmail: { enabled: true },
+      todoist: {
+        enabled: true,
+        apiKey: { source: "env", id: "TODOIST_API_KEY" },
+      },
+    },
+  },
 }
 ```
 
@@ -1964,6 +2006,7 @@ These are custom plugins you could build. See `examples/plugins/` for scaffoldin
 ### Plugin 1: Morning Briefing Engine
 
 Assembles and delivers a daily briefing via Telegram:
+
 - Today's calendar events
 - Unread email summary
 - Pending Todoist tasks
@@ -1976,6 +2019,7 @@ Assembles and delivers a daily briefing via Telegram:
 ### Plugin 2: Quick Capture Router
 
 When you message prefixes like:
+
 - `note:` → Saves to second brain
 - `todo:` → Creates Todoist task
 - `idea:` → Saves to ideas log in memory
@@ -1986,6 +2030,7 @@ Auto-categorizes, timestamps, and confirms with a one-liner.
 ### Plugin 3: Multi-Project Context Switcher
 
 `/project aiboard` → Sets context to AIBoard:
+
 - Loads AIBoard-specific memory
 - Makes relevant commands available (npm run dev, docker build)
 - Sets working directory
@@ -1995,6 +2040,7 @@ Maps: `aiboard` | `timezone` | `career` | `czbz`
 ### Plugin 4: Deployment Dashboard
 
 `/deploys` → Shows status of all deployments:
+
 - Career Navigator (Vercel)
 - czbz.ai (Vercel)
 - AIBoard (Railway)
@@ -2012,13 +2058,13 @@ rules, and architectural patterns that make them work.
 
 #### The Skills Landscape
 
-| Skill | Scope | Auth Method | Best For |
-|-------|-------|-------------|----------|
-| **gmail** | Read/send Gmail only | Google OAuth | Simple inbox triage |
-| **gmail-inbox-zero-triage** | Interactive triage with Telegram buttons | Google OAuth | Batch processing 20 emails at a time |
-| **gog** | Gmail + Calendar + Drive unified | OAuth via `gog` CLI | Full Google Workspace integration |
-| **googleworkspace** | Full Google Workspace | Service account or OAuth | Enterprise multi-service |
-| **email** (generic) | Any IMAP/SMTP provider | Himalaya CLI | Non-Gmail providers |
+| Skill                       | Scope                                    | Auth Method              | Best For                             |
+| --------------------------- | ---------------------------------------- | ------------------------ | ------------------------------------ |
+| **gmail**                   | Read/send Gmail only                     | Google OAuth             | Simple inbox triage                  |
+| **gmail-inbox-zero-triage** | Interactive triage with Telegram buttons | Google OAuth             | Batch processing 20 emails at a time |
+| **gog**                     | Gmail + Calendar + Drive unified         | OAuth via `gog` CLI      | Full Google Workspace integration    |
+| **googleworkspace**         | Full Google Workspace                    | Service account or OAuth | Enterprise multi-service             |
+| **email** (generic)         | Any IMAP/SMTP provider                   | Himalaya CLI             | Non-Gmail providers                  |
 
 **Recommendation:** Start with `gmail` for basic triage. Graduate to `gog` when you need
 email+calendar coordination in a single API call. Use `gmail-inbox-zero-triage` if you want
@@ -2027,12 +2073,14 @@ Telegram inline buttons for batch actions.
 #### Integration Methods
 
 **Method 1: Google OAuth (recommended)**
+
 ```bash
 clawhub install gmail
 openclaw skills auth gmail    # Opens browser for OAuth consent
 ```
 
 **Method 2: gog CLI (most complete — Gmail + Calendar + Drive in one)**
+
 ```bash
 brew install gog              # or: go install github.com/openclaw/gog@latest
 gog auth login
@@ -2040,6 +2088,7 @@ clawhub install gog
 ```
 
 **Method 3: Himalaya / IMAP+SMTP (non-Gmail providers)**
+
 ```bash
 brew install himalaya
 # Configure in ~/.config/himalaya/config.toml
@@ -2080,6 +2129,7 @@ on a schedule, categorizes messages, and presents actions for your approval.
 ```
 
 **Set up the cron:**
+
 ```bash
 openclaw cron add \
   --name "email-triage" \
@@ -2156,6 +2206,7 @@ Agent:  Created: "Call with Sarah" — Tue 2:00-2:30 PM
 #### Conflict Resolution
 
 Train the agent to handle conflicts proactively via AGENTS.md rules:
+
 - **Auto-offer alternatives**: When a requested slot is taken, offer the next 3 available windows
 - **Timezone awareness**: Always convert to the recipient's timezone when suggesting times
 - **Buffer enforcement**: Leave 30-minute gaps between meetings
@@ -2196,22 +2247,22 @@ The killer workflow: monitoring your inbox for meeting requests and automaticall
 
 Configure these via HEARTBEAT.md and cron:
 
-| Feature | Mechanism | Configuration |
-|---------|-----------|---------------|
-| **Morning agenda** | First heartbeat of the day | HEARTBEAT.md morning brief section |
-| **15-min meeting reminders** | Regular heartbeat check | HEARTBEAT.md calendar reminder check |
-| **Meeting prep notes** | Cron 10 min before event | `openclaw cron add --name "meeting-prep" ...` |
-| **End-of-day summary** | Evening cron | `openclaw cron add --name "eod-summary" --cron "0 18 * * *" ...` |
+| Feature                      | Mechanism                  | Configuration                                                    |
+| ---------------------------- | -------------------------- | ---------------------------------------------------------------- |
+| **Morning agenda**           | First heartbeat of the day | HEARTBEAT.md morning brief section                               |
+| **15-min meeting reminders** | Regular heartbeat check    | HEARTBEAT.md calendar reminder check                             |
+| **Meeting prep notes**       | Cron 10 min before event   | `openclaw cron add --name "meeting-prep" ...`                    |
+| **End-of-day summary**       | Evening cron               | `openclaw cron add --name "eod-summary" --cron "0 18 * * *" ...` |
 
 #### Heartbeat vs. Cron: When to Use Which
 
-| | Heartbeat | Cron |
-|---|-----------|------|
-| **Mechanism** | Agent wakes on interval, reads HEARTBEAT.md | System-scheduled command with specific message |
-| **Best for** | Cheap recurring checks ("anything need attention?") | Precise time-triggered tasks (morning brief at 7 AM) |
-| **Model** | Use Haiku (~$0.15/month at 30-min intervals) | Use Sonnet for complex tasks, Haiku for simple ones |
-| **Session** | Reuses last active session | `--session isolated` for clean context |
-| **Example** | Calendar reminders, inbox monitoring | Morning brief, deployment checks, end-of-day summary |
+|               | Heartbeat                                           | Cron                                                 |
+| ------------- | --------------------------------------------------- | ---------------------------------------------------- |
+| **Mechanism** | Agent wakes on interval, reads HEARTBEAT.md         | System-scheduled command with specific message       |
+| **Best for**  | Cheap recurring checks ("anything need attention?") | Precise time-triggered tasks (morning brief at 7 AM) |
+| **Model**     | Use Haiku (~$0.15/month at 30-min intervals)        | Use Sonnet for complex tasks, Haiku for simple ones  |
+| **Session**   | Reuses last active session                          | `--session isolated` for clean context               |
+| **Example**   | Calendar reminders, inbox monitoring                | Morning brief, deployment checks, end-of-day summary |
 
 > **Insight**: Use Haiku for heartbeat checks. At 30-minute intervals, a Haiku heartbeat costs
 > roughly $0.15/month versus $7.20/month with Sonnet — a 48x difference. The heartbeat's job is
@@ -2294,14 +2345,14 @@ costs low while maintaining comprehensive awareness.
 
 #### Essential Admin Skills
 
-| Skill | Install | Use Case |
-|-------|---------|----------|
-| **daily-briefing-hub** | `clawhub install daily-briefing-hub` | Aggregated morning/evening briefings |
-| **todoist** | `clawhub install todoist` | Full task CRUD with natural language |
-| **personal-crm** | `clawhub install personal-crm` | Track contacts, relationship health, follow-ups |
-| **template-engine** | `clawhub install template-engine` | Generate letters, invoices, reports from templates |
-| **smart-expense-tracker** | `clawhub install smart-expense-tracker` | Receipt photos to spreadsheet, budget tracking |
-| **browserautomation** | `clawhub install browserautomation` | Web forms, lookups, bookings |
+| Skill                     | Install                                 | Use Case                                           |
+| ------------------------- | --------------------------------------- | -------------------------------------------------- |
+| **daily-briefing-hub**    | `clawhub install daily-briefing-hub`    | Aggregated morning/evening briefings               |
+| **todoist**               | `clawhub install todoist`               | Full task CRUD with natural language               |
+| **personal-crm**          | `clawhub install personal-crm`          | Track contacts, relationship health, follow-ups    |
+| **template-engine**       | `clawhub install template-engine`       | Generate letters, invoices, reports from templates |
+| **smart-expense-tracker** | `clawhub install smart-expense-tracker` | Receipt photos to spreadsheet, budget tracking     |
+| **browserautomation**     | `clawhub install browserautomation`     | Web forms, lookups, bookings                       |
 
 #### Personal CRM Workflow
 
@@ -2333,6 +2384,7 @@ openclaw cron add \
 #### Multi-Skill Workflow Coordination
 
 The real power comes from skills working together. A single heartbeat can coordinate:
+
 - **Email**: "Any new meeting requests?"
 - **Calendar**: "Any conflicts with existing events?"
 - **Todoist**: "Any tasks due in the next 2 hours?"
@@ -2490,15 +2542,15 @@ openclaw onboard                         # Re-run setup wizard
 
 ### Common Issues
 
-| Problem | Fix |
-|---------|-----|
-| WhatsApp disconnects | `openclaw channels login --channel whatsapp` (re-scan QR) |
-| Gateway crashes | Check logs: `openclaw logs --follow`. Restart: `openclaw gateway restart` |
-| Skills not loading | `openclaw doctor --deep`. Check `skills.entries.<name>.enabled` |
-| Memory search empty | `openclaw memory index --all` to rebuild vector index |
-| High API costs | Switch to `claude-haiku-4-5` for daily use. Use `sonnet` only when needed. |
-| Agent not responding | `openclaw channels status --probe`. Check channel health. |
-| Context too large | Run `/compact` to summarize old context. Reduce loaded skills. |
+| Problem              | Fix                                                                        |
+| -------------------- | -------------------------------------------------------------------------- |
+| WhatsApp disconnects | `openclaw channels login --channel whatsapp` (re-scan QR)                  |
+| Gateway crashes      | Check logs: `openclaw logs --follow`. Restart: `openclaw gateway restart`  |
+| Skills not loading   | `openclaw doctor --deep`. Check `skills.entries.<name>.enabled`            |
+| Memory search empty  | `openclaw memory index --all` to rebuild vector index                      |
+| High API costs       | Switch to `claude-haiku-4-5` for daily use. Use `sonnet` only when needed. |
+| Agent not responding | `openclaw channels status --probe`. Check channel health.                  |
+| Context too large    | Run `/compact` to summarize old context. Reduce loaded skills.             |
 
 ### Nuclear Options
 
@@ -2512,27 +2564,206 @@ openclaw doctor --deep --yes             # Fix everything it can
 
 ---
 
-## 22. Cost & Infrastructure
+## 22. NanoClaw Comparison
+
+NanoClaw is a lightweight, security-first alternative to OpenClaw that launched January 31, 2026.
+Understanding both helps you choose the right tool and appreciate OpenClaw's design trade-offs.
+
+### 22.1 What Is NanoClaw?
+
+- **Creator**: Gavriel Cohen (ex-Wix, 7 years; co-founder of Qwibit)
+- **License**: MIT (fully open source)
+- **GitHub**: [github.com/qwibitai/nanoclaw](https://github.com/qwibitai/nanoclaw) — 23,000+ stars
+- **Philosophy**: "Small enough to understand, secure by isolation"
+- **Codebase**: ~3,900 LOC across 15 TypeScript files (vs. OpenClaw's ~500K LOC)
+- **AI Models**: Claude only (via Anthropic Agent SDK)
+- **Docker partnership**: Formal partnership with Docker announced March 13, 2026
+
+**Origin story**: Cohen was using OpenClaw with WhatsApp and found security issues — no agent
+isolation, no access controls, messages stored in plain text. He built NanoClaw over a weekend.
+It went viral after an Andrej Karpathy shoutout.
+
+### 22.2 Architecture: Opposite Philosophies
+
+```
+  ┌──────────────────────────────────────────────────────────────────┐
+  │              OPENCLAW vs NANOCLAW ARCHITECTURE                    │
+  └──────────────────────────────────────────────────────────────────┘
+
+  OPENCLAW:
+  Channel → Gateway (WebSocket:18789) → Session Manager → Context Assembly
+    → LLM Router (Claude/GPT/Gemini/Ollama) → Tool Executor → Response
+
+  NANOCLAW:
+  Channel → SQLite → Polling Loop → Docker Container (Claude Agent SDK)
+    → Response via filesystem IPC
+```
+
+| Aspect          | **OpenClaw**                                    | **NanoClaw**                           |
+| --------------- | ----------------------------------------------- | -------------------------------------- |
+| Codebase        | ~500K LOC, 53 config files, 70+ deps            | ~3,900 LOC, 15 files, handful of deps  |
+| Process model   | Single Gateway (Node.js)                        | Orchestrator + per-group containers    |
+| Isolation       | Application-level (policies, allowlists)        | OS-level (Docker containers per group) |
+| Config approach | JSON5 config + workspace .md files              | Fork repo + modify via Claude Code     |
+| AI models       | Claude, GPT, Gemini, Ollama, OpenRouter         | **Claude only**                        |
+| Distribution    | `npm install -g openclaw`                       | `gh repo fork` + Claude Code           |
+| Extensibility   | Plugins (TypeScript) + ClawHub (13,700+ skills) | Skills (git branches) + code changes   |
+| Dashboard       | Dashboard v2 (web UI, command palette)          | None — CLI only                        |
+
+### 22.3 Docker Setup
+
+NanoClaw supports three container runtimes:
+
+| Runtime                            | Platform              | Isolation Level                   |
+| ---------------------------------- | --------------------- | --------------------------------- |
+| **Docker Sandboxes** (recommended) | macOS, Windows WSL    | Hypervisor micro VMs + containers |
+| **Apple Container**                | macOS (Apple Silicon) | Native macOS containerization     |
+| **Standard Docker**                | macOS, Linux          | Standard container isolation      |
+
+```bash
+# macOS with Docker Sandboxes (recommended)
+curl -fsSL https://nanoclaw.dev/install-docker-sandboxes.sh | bash
+
+# Manual (fork-based)
+gh repo fork qwibitai/nanoclaw --clone
+cd nanoclaw
+claude        # Opens Claude Code
+/setup        # Interactive setup skill
+```
+
+Each agent session runs in an isolated container:
+
+- Its own filesystem, IPC namespace, and process space
+- Only explicitly mounted directories accessible
+- Bash commands execute **inside the container**, never on host
+- Pre-installed: Node.js, Python, git, Chromium
+
+**Docker Sandboxes add a second layer**: containers run inside a micro VM with its own kernel
+and Docker daemon. API keys are injected via Docker's MITM proxy — never stored inside the sandbox.
+
+### 22.4 Functionality Comparison
+
+| Feature               | **OpenClaw**                                                      | **NanoClaw**                                  |
+| --------------------- | ----------------------------------------------------------------- | --------------------------------------------- |
+| **Channels**          | Telegram, WhatsApp, Discord, Slack, iMessage, Signal, Matrix, IRC | WhatsApp, Telegram, Discord, Slack, Gmail     |
+| **AI Models**         | Claude, GPT, Gemini, Ollama (multi-model + fallback chains)       | Claude only                                   |
+| **Memory**            | 3-tier (daily logs, MEMORY.md, vector search + MMR)               | Per-group `CLAUDE.md` files                   |
+| **Heartbeat**         | Configurable (interval, active hours, model, lightContext)        | Polling-based task scheduler                  |
+| **Cron**              | Full cron engine (`openclaw cron add`)                            | Recurring tasks via scheduler                 |
+| **Sub-agents**        | Ephemeral sessions with depth tracking                            | Agent Swarms (multi-agent containers)         |
+| **Browser**           | Playwright/CDP, dedicated profile                                 | Chromium inside container                     |
+| **Voice/TTS**         | ElevenLabs, OpenAI, Edge-TTS                                      | Via `add-voice-transcription` skill (Whisper) |
+| **Dashboard**         | Dashboard v2 (web UI, mobile tabs)                                | None                                          |
+| **Compaction**        | Auto-compaction + memory flush + ContextEngine                    | Handled by Claude Agent SDK                   |
+| **iMessage**          | Yes (macOS AppleScript)                                           | No                                            |
+| **Signal**            | Yes (signal-cli bridge)                                           | No                                            |
+| **Cost optimization** | Haiku for heartbeat ($0.15/mo), model mixing                      | No — Claude only                              |
+| **Group isolation**   | Per-peer sessions, configurable scopes                            | Per-group Docker containers                   |
+
+### 22.5 Extensibility Comparison
+
+|                 | **OpenClaw**                                     | **NanoClaw**                                   |
+| --------------- | ------------------------------------------------ | ---------------------------------------------- |
+| Extension model | Skills (SKILL.md) + Plugins (TypeScript)         | Skills (Claude Code commands via git branches) |
+| Skills registry | ClawHub (13,700+ community skills)               | ~23 official skills, no marketplace            |
+| Plugin system   | In-process TypeScript with full Gateway API      | None — modify source directly                  |
+| ContextEngine   | Pluggable context management (7 lifecycle hooks) | None                                           |
+| Custom channels | `api.registerChannel()` in plugins               | Self-registering channel system (code changes) |
+| Hooks           | Event-driven (`command:new`, `gateway:startup`)  | None                                           |
+| Hot reload      | Skills watcher, plugin enable/disable            | Restart after code changes                     |
+| Contributing    | Submit skills to ClawHub                         | Submit skill branches, others `git merge`      |
+
+**NanoClaw's key extensibility insight**: Because the codebase is small (~3,900 LOC), Claude Code
+can safely modify it directly. You extend NanoClaw by talking to Claude: "Add a voice transcription
+feature" → Claude generates the integration code in your fork. No plugin API needed.
+
+### 22.6 Security Comparison
+
+This is NanoClaw's primary differentiator.
+
+| Security Feature | **OpenClaw**                             | **NanoClaw**                               |
+| ---------------- | ---------------------------------------- | ------------------------------------------ |
+| Isolation model  | Application-level (7 security layers)    | OS-level (Docker containers per group)     |
+| Agent isolation  | Agents share process memory              | Each agent in own container + filesystem   |
+| Message storage  | JSONL session files (shared filesystem)  | Per-group isolated filesystem              |
+| Bash execution   | On Gateway host (unless sandboxed)       | Inside container (never on host)           |
+| Sandboxing       | Optional (`sandbox.mode`)                | **Default** — every session sandboxed      |
+| Micro VM support | None                                     | Docker Sandboxes (hypervisor + own kernel) |
+| Auditability     | ~500K LOC (unrealistic for manual audit) | ~3,900 LOC (auditable in one sitting)      |
+| Security tooling | `openclaw security audit --deep`         | Manual code review (feasible)              |
+| Attack surface   | Web UI, RPC, plugins, 70+ dependencies   | No UI, no RPC, minimal deps                |
+
+**Key distinction:**
+
+- **OpenClaw**: Defense-in-depth through configuration — "Configure it correctly and it's secure"
+- **NanoClaw**: Defense through isolation — "Even if misconfigured, containers prevent damage"
+
+### 22.7 NanoClaw Limitations
+
+What NanoClaw **cannot** do that OpenClaw can:
+
+1. **No multi-LLM support** — Claude only. No GPT, Gemini, or local Ollama models.
+2. **Tiny ecosystem** — ~23 skills vs. ClawHub's 13,700+. No enterprise integrations.
+3. **No plugin API** — Can't write TypeScript plugins with hooks, custom tools, or RPC methods.
+4. **No sophisticated memory** — No vector search, no MMR, no temporal decay, no embeddings.
+5. **No dashboard** — CLI only, no web UI for monitoring or configuration.
+6. **Limited platform support** — macOS (Apple Silicon) and Windows (WSL) only. Linux "coming soon."
+7. **No cost optimization** — Can't mix models (Haiku for heartbeat, Sonnet for conversation).
+8. **No iMessage or Signal** — Fewer channel integrations.
+
+**Community critiques** (from Hacker News, Reddit):
+
+- Still vulnerable to prompt injection — containers limit blast radius but don't prevent it
+- Creator described it as "a reference or starting point" rather than production-ready
+- Agent swarm demos were criticized for producing limited practical value
+- The sandboxing that improves security inherently limits what the agent can do
+- Users are responsible for all maintenance: security patches, uptime, API costs, debugging
+
+### 22.8 When to Choose Which
+
+| Choose **OpenClaw** when...                              | Choose **NanoClaw** when...                     |
+| -------------------------------------------------------- | ----------------------------------------------- |
+| You need multi-model support (Claude + GPT + Gemini)     | Claude-only is fine                             |
+| You want 13,700+ community skills                        | Minimal deps, auditable code                    |
+| You need plugin development capability                   | Fork-and-modify is your style                   |
+| You want sophisticated memory (vector search, MMR)       | Simple per-group memory is enough               |
+| You need a dashboard and web UI                          | CLI-only is fine                                |
+| You use iMessage or Signal                               | WhatsApp/Telegram/Discord/Slack covers you      |
+| You want cost optimization (Haiku heartbeat at $0.15/mo) | Don't want to manage model selection            |
+| You prefer config over code changes                      | You're comfortable with Claude modifying source |
+| You need enterprise access control policies              | You trust container isolation over policies     |
+| You want voice/TTS features                              | Text-only is fine                               |
+
+> **Insight for your use case**: You're building a personal assistant + second brain on Telegram
+> and WhatsApp. OpenClaw gives you multi-model cost savings (Haiku heartbeat saves ~$7/month),
+> a richer memory system (vector search + embeddings), and 13,700+ skills on ClawHub. NanoClaw
+> gives you stronger default security and simpler setup but less flexibility. Since you're
+> investing in becoming an OpenClaw expert, it remains the right choice — but NanoClaw is worth
+> watching for its Docker isolation model, which OpenClaw may adopt patterns from.
+
+---
+
+## 23. Cost & Infrastructure
 
 ### API Costs (Anthropic Claude)
 
-| Model | Cost Estimate | Use For |
-|-------|--------------|---------|
-| Claude Haiku 4.5 | ~$1-2/day | Daily assistant tasks, quick responses |
-| Claude Sonnet 4.6 | ~$3-5/day | Complex reasoning, code review, deep work |
-| Claude Opus 4.6 | ~$10-15/day | Extended coding, nuanced content creation |
+| Model             | Cost Estimate | Use For                                   |
+| ----------------- | ------------- | ----------------------------------------- |
+| Claude Haiku 4.5  | ~$1-2/day     | Daily assistant tasks, quick responses    |
+| Claude Sonnet 4.6 | ~$3-5/day     | Complex reasoning, code review, deep work |
+| Claude Opus 4.6   | ~$10-15/day   | Extended coding, nuanced content creation |
 
 **Recommendation**: Start with Sonnet as primary, Haiku as fallback. Switch to Opus only for
 specific deep-work sessions via `/model anthropic/claude-opus-4-6`.
 
 ### Hardware
 
-| Setup | Pros | Cons |
-|-------|------|------|
-| **Mac (always-on)** | Native menubar app, iMessage support | Must stay powered |
-| **Mini PC / NUC** | Dedicated, low power | No iMessage |
-| **VPS / Cloud** | Always accessible | No local file access |
-| **Docker** | Portable, isolated | Extra complexity |
+| Setup               | Pros                                 | Cons                 |
+| ------------------- | ------------------------------------ | -------------------- |
+| **Mac (always-on)** | Native menubar app, iMessage support | Must stay powered    |
+| **Mini PC / NUC**   | Dedicated, low power                 | No iMessage          |
+| **VPS / Cloud**     | Always accessible                    | No local file access |
+| **Docker**          | Portable, isolated                   | Extra complexity     |
 
 **Recommendation for you**: Run on your Mac during the day. Consider a Mac Mini for 24/7 if
 you want always-on Telegram/WhatsApp responsiveness.
@@ -2556,7 +2787,7 @@ Requires 64GB+ RAM for good results. Claude via API is significantly better for 
 
 ---
 
-## 23. Learning Roadmap
+## 24. Learning Roadmap
 
 ### Week 1: Foundation
 

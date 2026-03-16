@@ -3,7 +3,7 @@ name: email-triage
 description: "Batch-process unread emails: categorize, summarize, and present actions for approval"
 version: 1.0.0
 user-invocable: true
-metadata: {"openclaw": {"emoji": "📧", "always": false}}
+metadata: { "openclaw": { "emoji": "📧", "always": false } }
 ---
 
 ## Email Triage Skill
@@ -15,6 +15,7 @@ on-demand email management.
 ## Trigger Conditions
 
 Activate this skill when:
+
 - The user says "triage my email", "check my inbox", "email triage", or similar
 - A cron job or heartbeat invokes email triage
 - The user asks "what's in my inbox?"
@@ -22,6 +23,7 @@ Activate this skill when:
 ## Dependencies
 
 This skill requires one of the following email skills to be installed and authenticated:
+
 - `gmail` (basic Gmail access)
 - `gog` (unified Gmail + Calendar + Drive)
 - `email` (generic IMAP/SMTP via Himalaya)
@@ -42,13 +44,13 @@ Install one with: `clawhub install gmail`"
 
 Assign each message to exactly one category:
 
-| Category | Criteria | Icon |
-|----------|----------|------|
-| **Action Required** | Needs a reply or decision from me | 🔴 |
-| **Meeting Request** | Contains scheduling language or calendar invite | 📅 |
-| **FYI** | Informational, no action needed | 🔵 |
-| **Newsletter** | Automated, marketing, or subscription content | ⬜ |
-| **Notification** | Service alerts, CI/CD, automated systems | ⬜ |
+| Category            | Criteria                                        | Icon |
+| ------------------- | ----------------------------------------------- | ---- |
+| **Action Required** | Needs a reply or decision from me               | 🔴   |
+| **Meeting Request** | Contains scheduling language or calendar invite | 📅   |
+| **FYI**             | Informational, no action needed                 | 🔵   |
+| **Newsletter**      | Automated, marketing, or subscription content   | ⬜   |
+| **Notification**    | Service alerts, CI/CD, automated systems        | ⬜   |
 
 ### Step 3: Build Summary
 
@@ -88,26 +90,31 @@ What would you like to do?
 When the user selects an action:
 
 **Option 1 (Reply to action items)**:
+
 1. For each action-required email, draft a reply following SOUL.md email voice.
 2. Present all drafts in a numbered list.
 3. Wait for approval: "Send all", "Edit #N", or "Skip #N".
 4. Only send after explicit approval per message.
 
 **Option 2 (Archive FYI + newsletters)**:
+
 1. List the messages that will be archived.
 2. Confirm: "Archive these [N] messages?"
 3. Archive only after confirmation.
 
 **Option 3 (Meeting requests)**:
+
 1. For each meeting request, check calendar availability.
 2. Draft a reply with 3 available time slots.
 3. Present drafts for approval before sending.
 
 **Option 4 (Show details)**:
+
 1. Show the full email body for the requested message.
 2. Return to the action menu.
 
 **Option 5 (Skip)**:
+
 1. Acknowledge and end the triage session.
 
 ## Rules
